@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-03T15:47:06.634Z",
+  "browser": "Chromium 153.0.8010.12 (headless, Playwright 1.63.0)",
+  "environment": "Облачный Linux-контейнер без GPU. Значения headless не равны частоте реального экрана 60 Hz.",
+  "fillSequence": {
+    "note": "rAF-интервалы во время 0→12.5→25→50→100 в галерее, 3.4 с",
+    "frames": 124,
+    "meanMs": 27.5,
+    "p50Ms": 16.7,
+    "p95Ms": 50.1,
+    "maxMs": 66.7,
+    "over20ms": 44,
+    "over34ms": 31
+  },
+  "haloUpdates": {
+    "note": "Интервалы между изменениями transform ореола при записи фиктивного микрофона Chromium, 10 с",
+    "distinctScaleValues": 22,
+    "frames": 182,
+    "meanMs": 55.2,
+    "p50Ms": 48.4,
+    "p95Ms": 91.8,
+    "maxMs": 448.3,
+    "over20ms": 179,
+    "over34ms": 179
+  }
+}

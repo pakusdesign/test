@@ -1,0 +1,202 @@
+{
+  "date": "2026-11-03T15:31:36.873Z",
+  "results": [
+    {
+      "element": "Основной текст app-text-primary",
+      "background": "стекло над холстом",
+      "ratio": 17.82,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Основной текст app-text-primary",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 16.48,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Основной текст app-text-primary",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 16.7,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Основной текст app-text-primary",
+      "background": "непрозрачный fallback",
+      "ratio": 18.1,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Вторичный текст app-text-secondary",
+      "background": "стекло над холстом",
+      "ratio": 7.69,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Вторичный текст app-text-secondary",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 7.12,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Вторичный текст app-text-secondary",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 7.21,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Вторичный текст app-text-secondary",
+      "background": "непрозрачный fallback",
+      "ratio": 7.81,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Акцент / ссылки / заполненные штрихи app-accent",
+      "background": "стекло над холстом",
+      "ratio": 4.92,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Акцент / ссылки / заполненные штрихи app-accent",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 4.56,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Акцент / ссылки / заполненные штрихи app-accent",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 4.62,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Акцент / ссылки / заполненные штрихи app-accent",
+      "background": "непрозрачный fallback",
+      "ratio": 5,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Пустые штрихи круга (border-strong-01)",
+      "background": "стекло над холстом",
+      "ratio": 3.27,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Пустые штрихи круга (border-strong-01)",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 3.02,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Пустые штрихи круга (border-strong-01)",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 3.06,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Пустые штрихи круга (border-strong-01)",
+      "background": "непрозрачный fallback",
+      "ratio": 3.32,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Активный сектор (icon-secondary)",
+      "background": "стекло над холстом",
+      "ratio": 7.69,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Активный сектор (icon-secondary)",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 7.12,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Активный сектор (icon-secondary)",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 7.21,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Активный сектор (icon-secondary)",
+      "background": "непрозрачный fallback",
+      "ratio": 7.81,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Знак 100% (support-success)",
+      "background": "стекло над холстом",
+      "ratio": 3.3,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Знак 100% (support-success)",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 3.05,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Знак 100% (support-success)",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 3.09,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Знак 100% (support-success)",
+      "background": "непрозрачный fallback",
+      "ratio": 3.35,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Ошибка (text-error)",
+      "background": "стекло над холстом",
+      "ratio": 4.93,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Ошибка (text-error)",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 4.56,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Ошибка (text-error)",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 4.62,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Ошибка (text-error)",
+      "background": "непрозрачный fallback",
+      "ratio": 5,
+      "required": 4.5,
+      "pass": true
+    }
+  ],
+  "failed": 0
+}

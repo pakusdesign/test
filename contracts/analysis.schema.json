@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Analysis",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "facts",
+    "units",
+    "conflicts"
+  ],
+  "properties": {
+    "facts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "questionId",
+          "kind",
+          "text",
+          "evidence",
+          "dependsOn"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "questionId": {
+            "enum": [
+              "q1",
+              "q2",
+              "q3",
+              "q4"
+            ]
+          },
+          "kind": {
+            "enum": [
+              "task",
+              "project",
+              "contribution",
+              "direction",
+              "tool",
+              "knowledge",
+              "role_title",
+              "other"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "answerId",
+                "answerRevision",
+                "quote"
+              ],
+              "properties": {
+                "answerId": {
+                  "type": "string"
+                },
+                "answerRevision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "units": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "state",
+          "factIds"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "q1.task1",
+              "q1.task2",
+              "q2.project",
+              "q2.contribution",
+              "q3.direction",
+              "q3.project",
+              "q4.tools",
+              "q4.knowledge"
+            ]
+          },
+          "state": {
+            "enum": [
+              "known",
+              "missing",
+              "unknown",
+              "not_required",
+              "conflict"
+            ]
+          },
+          "factIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "factIds",
+          "description"
+        ],
+        "properties": {
+          "factIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

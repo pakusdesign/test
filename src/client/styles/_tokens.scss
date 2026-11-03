@@ -1,0 +1,27 @@
+// Токены приложения. Значения совпадают с src/client/styles/tokens.ts (проверяется тестом).
+// Префикс app — собственные токены проекта, не API Carbon.
+:root {
+  --app-canvas: #F4F7FC;
+  --app-glass-surface: rgba(255,255,255,0.78);
+  --app-glass-border: rgba(255,255,255,0.85);
+  --app-glass-blur: 20px;
+  --app-glass-shadow: 0 12px 40px rgba(22,42,78,0.08);
+  --app-panel-radius: 20px;
+  --app-solid-surface: #FFFFFF;
+  --app-text-primary: #161616;
+  --app-text-secondary: #525252;
+  --app-accent: #0F62FE;
+  --app-content-max: 1584px;
+  --app-reading-max: 680px;
+  --app-blob-blue: rgba(120,169,255,0.50);
+  --app-blob-lilac: rgba(190,149,255,0.42);
+
+  --motion-fill-duration: 400ms;
+  --motion-fill-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-drain-duration: 240ms;
+  --motion-halo-fade: 120ms;
+  --motion-stage-label: 120ms;
+  --motion-success-fade: 180ms;
+  --motion-question-duration: 180ms;
+  --motion-question-shift: 8px;
+}

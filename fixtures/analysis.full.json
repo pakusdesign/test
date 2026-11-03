@@ -1,0 +1,194 @@
+{
+  "facts": [
+    {
+      "id": "f1",
+      "questionId": "q1",
+      "kind": "task",
+      "text": "Анализировать отказы оплаты.",
+      "evidence": [
+        {
+          "answerId": "a1",
+          "answerRevision": 1,
+          "quote": "анализирует отказы оплаты"
+        }
+      ],
+      "dependsOn": []
+    },
+    {
+      "id": "f2",
+      "questionId": "q1",
+      "kind": "task",
+      "text": "Проверять отчёты по конверсии.",
+      "evidence": [
+        {
+          "answerId": "a1",
+          "answerRevision": 1,
+          "quote": "проверяет отчёты по конверсии"
+        }
+      ],
+      "dependsOn": []
+    },
+    {
+      "id": "f3",
+      "questionId": "q2",
+      "kind": "project",
+      "text": "Платёжный модуль магазина.",
+      "evidence": [
+        {
+          "answerId": "a2",
+          "answerRevision": 1,
+          "quote": "платёжным модулем магазина"
+        }
+      ],
+      "dependsOn": []
+    },
+    {
+      "id": "f4",
+      "questionId": "q2",
+      "kind": "contribution",
+      "text": "Найти причины неуспешных платежей.",
+      "evidence": [
+        {
+          "answerId": "a2",
+          "answerRevision": 1,
+          "quote": "найти причины неуспешных платежей"
+        }
+      ],
+      "dependsOn": []
+    },
+    {
+      "id": "f5",
+      "questionId": "q3",
+      "kind": "direction",
+      "text": "Следующие полгода продолжить текущий проект.",
+      "evidence": [
+        {
+          "answerId": "a3",
+          "answerRevision": 1,
+          "quote": "Следующие полгода продолжит этот же платёжный модуль."
+        }
+      ],
+      "dependsOn": [
+        "f3"
+      ]
+    },
+    {
+      "id": "f6",
+      "questionId": "q3",
+      "kind": "project",
+      "text": "Следующие полгода работать над платёжным модулем.",
+      "evidence": [
+        {
+          "answerId": "a3",
+          "answerRevision": 1,
+          "quote": "Следующие полгода продолжит этот же платёжный модуль."
+        }
+      ],
+      "dependsOn": [
+        "f3"
+      ]
+    },
+    {
+      "id": "f7",
+      "questionId": "q4",
+      "kind": "tool",
+      "text": "Нужны SQL и Metabase.",
+      "evidence": [
+        {
+          "answerId": "a4",
+          "answerRevision": 1,
+          "quote": "Нужны SQL и Metabase"
+        }
+      ],
+      "dependsOn": []
+    },
+    {
+      "id": "f8",
+      "questionId": "q4",
+      "kind": "knowledge",
+      "text": "Нужно знание воронок оплаты.",
+      "evidence": [
+        {
+          "answerId": "a4",
+          "answerRevision": 1,
+          "quote": "знание воронок оплаты"
+        }
+      ],
+      "dependsOn": []
+    },
+    {
+      "id": "f9",
+      "questionId": "q4",
+      "kind": "tool",
+      "text": "Python желателен.",
+      "evidence": [
+        {
+          "answerId": "a4",
+          "answerRevision": 1,
+          "quote": "Python желателен."
+        }
+      ],
+      "dependsOn": []
+    }
+  ],
+  "units": [
+    {
+      "id": "q1.task1",
+      "state": "known",
+      "factIds": [
+        "f1"
+      ]
+    },
+    {
+      "id": "q1.task2",
+      "state": "known",
+      "factIds": [
+        "f2"
+      ]
+    },
+    {
+      "id": "q2.project",
+      "state": "known",
+      "factIds": [
+        "f3"
+      ]
+    },
+    {
+      "id": "q2.contribution",
+      "state": "known",
+      "factIds": [
+        "f4"
+      ]
+    },
+    {
+      "id": "q3.direction",
+      "state": "known",
+      "factIds": [
+        "f5"
+      ]
+    },
+    {
+      "id": "q3.project",
+      "state": "known",
+      "factIds": [
+        "f6"
+      ]
+    },
+    {
+      "id": "q4.tools",
+      "state": "known",
+      "factIds": [
+        "f7",
+        "f9"
+      ]
+    },
+    {
+      "id": "q4.knowledge",
+      "state": "known",
+      "factIds": [
+        "f8"
+      ]
+    }
+  ],
+  "conflicts": []
+}

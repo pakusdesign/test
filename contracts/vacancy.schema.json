@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VacancyDocument",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title",
+    "sections",
+    "gaps"
+  ],
+  "properties": {
+    "title": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "sourceFactIds"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "sourceFactIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "items"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "daily_tasks",
+              "current_project",
+              "next_six_months",
+              "tools",
+              "knowledge"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "text",
+                "sourceFactIds"
+              ],
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "sourceFactIds": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

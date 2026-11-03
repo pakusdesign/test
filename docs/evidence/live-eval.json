@@ -1,0 +1,6 @@
+{
+  "status": "BLOCKED",
+  "date": "2026-11-03T16:45:50.179Z",
+  "reason": "Не заданы переменные: ANTHROPIC_API_KEY, LLM_MODEL, DEEPGRAM_API_KEY",
+  "runs": []
+}

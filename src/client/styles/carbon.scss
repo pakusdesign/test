@@ -1,0 +1,54 @@
+// Тема Carbon: основа White, кастомизация только через токены темы
+// (docs/10-design-system.md, DES02). Файлы пакета не изменяются,
+// внутренние классы компонентов не переопределяются.
+@use 'sass:map';
+
+// Шрифт IBM Plex Sans подключается локально из @fontsource (latin + cyrillic),
+// поэтому @font-face Carbon (загрузка с CDN) отключён.
+@use '@carbon/react/scss/config' with (
+  $css--font-face: false,
+  $css--body: true
+);
+@use '@carbon/react/scss/themes';
+
+// app-canvas → background; вложенные карточки — непрозрачный белый слой.
+// Остальные семантические токены (текст, фокус, статусы, границы) — из White.
+$app-theme-overrides: (
+  background: #f4f7fc,
+  layer-01: #ffffff,
+  layer-hover-01: #f2f5fa,
+);
+
+@use '@carbon/react/scss/theme' with (
+  $fallback: themes.$white,
+  $theme: map.merge(themes.$white, $app-theme-overrides)
+);
+
+// Только используемые части Carbon (тот же порядок, что в @carbon/styles/index.scss):
+// сброс, сетка, токены размеров (layout), слои, зоны и стили применяемых компонентов.
+@use '@carbon/react/scss/reset';
+@use '@carbon/react/scss/grid';
+@use '@carbon/react/scss/layout';
+@use '@carbon/react/scss/layer';
+@use '@carbon/react/scss/zone';
+@use '@carbon/react/scss/components/accordion';
+@use '@carbon/react/scss/components/button';
+@use '@carbon/react/scss/components/checkbox';
+@use '@carbon/react/scss/components/form';
+@use '@carbon/react/scss/components/inline-loading';
+@use '@carbon/react/scss/components/loading';
+@use '@carbon/react/scss/components/modal';
+@use '@carbon/react/scss/components/notification';
+@use '@carbon/react/scss/components/popover';
+@use '@carbon/react/scss/components/select';
+@use '@carbon/react/scss/components/skeleton-styles';
+@use '@carbon/react/scss/components/tag';
+@use '@carbon/react/scss/components/text-area';
+@use '@carbon/react/scss/components/text-input';
+@use '@carbon/react/scss/components/toggle';
+@use '@carbon/react/scss/components/tooltip';
+
+// CSS-переменные темы на :root: токены доступны всем компонентам и слою приложения.
+:root {
+  @include theme.theme();
+}

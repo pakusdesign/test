@@ -1,0 +1,85 @@
+{
+  "title": {
+    "text": "Описание вакансии",
+    "sourceFactIds": []
+  },
+  "sections": [
+    {
+      "id": "daily_tasks",
+      "items": [
+        {
+          "text": "Анализировать отказы оплаты.",
+          "sourceFactIds": [
+            "f1"
+          ]
+        },
+        {
+          "text": "Проверять отчёты по конверсии.",
+          "sourceFactIds": [
+            "f2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "current_project",
+      "items": [
+        {
+          "text": "Платёжный модуль магазина.",
+          "sourceFactIds": [
+            "f3"
+          ]
+        },
+        {
+          "text": "Найти причины неуспешных платежей.",
+          "sourceFactIds": [
+            "f4"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "next_six_months",
+      "items": [
+        {
+          "text": "Следующие полгода работать над платёжным модулем.",
+          "sourceFactIds": [
+            "f6"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tools",
+      "items": [
+        {
+          "text": "Нужны SQL и Metabase.",
+          "sourceFactIds": [
+            "f7"
+          ]
+        },
+        {
+          "text": "Python желателен.",
+          "sourceFactIds": [
+            "f9"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "knowledge",
+      "items": [
+        {
+          "text": "Нужно знание воронок оплаты.",
+          "sourceFactIds": [
+            "f8"
+          ]
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    "Название должности не указано.",
+    "Условия работы не указаны."
+  ]
+}

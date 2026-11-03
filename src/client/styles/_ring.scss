@@ -1,0 +1,225 @@
+// VacancyProgressRing (docs/12-progress-animation.md).
+// Анимируются только stroke-dashoffset масок групп, ореол и знак 100%.
+// Геометрия штрихов неизменна; transition: all не используется.
+@use '@carbon/react/scss/type';
+@use '@carbon/react/scss/theme' as theme;
+
+.vpr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.vpr__figure {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  flex: none;
+}
+
+.vpr__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+// Нейтральная дорожка: семантический токен Carbon border-strong.
+.vpr__tick {
+  stroke: theme.$border-strong-01;
+}
+
+.vpr__tick--active-sector {
+  stroke: theme.$icon-secondary;
+}
+
+.vpr__fill {
+  stroke: var(--app-accent);
+}
+
+// Проявление группы по часовой стрелке: 400 ms, кривая из спецификации.
+.vpr__mask-arc {
+  transition-property: stroke-dashoffset;
+  transition-duration: var(--motion-fill-duration);
+  transition-timing-function: var(--motion-fill-easing);
+}
+
+// Погашение: 240 ms, обратный порядок (дуга отступает к началу группы).
+.vpr__mask-arc[data-dir='down'] {
+  transition-duration: var(--motion-drain-duration);
+}
+
+// Скрытая вкладка: изменения применяются сразу, накопленные кадры не проигрываются.
+.vpr[data-paused='true'] .vpr__mask-arc,
+.vpr[data-reduced-motion='true'] .vpr__mask-arc {
+  transition: none;
+}
+
+.vpr__halo {
+  stroke: var(--app-accent);
+  opacity: 0.2;
+  transform-box: view-box;
+  transform-origin: 110px 110px;
+  will-change: transform, opacity;
+}
+
+.vpr__halo-wrap {
+  opacity: 0;
+  transition: opacity var(--motion-halo-fade) linear;
+}
+
+.vpr__halo-wrap[data-active='true'] {
+  opacity: 1;
+}
+
+.vpr[data-reduced-motion='true'] .vpr__halo-wrap {
+  transition: none;
+}
+
+.vpr[data-reduced-motion='true'] .vpr__halo {
+  transform: none !important;
+  opacity: 0.5;
+}
+
+.vpr__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.vpr__label {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+}
+
+.vpr__value {
+  @include type.type-style('heading-05');
+  color: theme.$text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.vpr__success {
+  display: inline-flex;
+  height: 20px;
+  margin-bottom: 2px;
+  color: theme.$support-success;
+  opacity: 0;
+  transition: none;
+
+  &[data-visible='true'] {
+    opacity: 1;
+  }
+
+  // Первое достижение 100%: сначала завершается заполнение (400 ms), затем знак (180 ms).
+  &[data-visible='true'][data-animate='true'] {
+    transition: opacity var(--motion-success-fade) linear var(--motion-fill-duration);
+  }
+
+  svg {
+    fill: currentColor;
+  }
+}
+
+.vpr__caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 52px;
+  text-align: center;
+}
+
+.vpr__answered {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+}
+
+.vpr__stage {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  @include type.type-style('body-01');
+  color: theme.$text-primary;
+
+  .cds--inline-loading {
+    min-height: 24px;
+    width: auto;
+  }
+}
+
+.vpr__stage-text,
+.vpr__static-wait {
+  animation: vpr-label-in var(--motion-stage-label) linear;
+}
+
+.vpr__static-wait {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+
+  svg {
+    fill: theme.$icon-secondary;
+  }
+}
+
+.vpr[data-reduced-motion='true'] .vpr__stage-text,
+.vpr[data-reduced-motion='true'] .vpr__static-wait {
+  animation: none;
+}
+
+@keyframes vpr-label-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.vpr__note {
+  @include type.type-style('body-01');
+  color: theme.$text-error;
+  max-width: 280px;
+}
+
+// Компактный desktop: 200 px.
+@media (max-width: 1055px) {
+  .vpr__figure {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vpr__mask-arc,
+  .vpr__halo-wrap,
+  .vpr__success,
+  .vpr__stage-text,
+  .vpr__static-wait {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+// Forced colors: заполненные группы — Highlight, незаполненные — контур CanvasText.
+@media (forced-colors: active) {
+  .vpr__tick,
+  .vpr__tick--active-sector {
+    stroke: GrayText;
+  }
+  .vpr__fill {
+    stroke: Highlight;
+  }
+  .vpr__halo {
+    stroke: Highlight;
+  }
+  .vpr__success {
+    color: Highlight;
+  }
+}

@@ -1,0 +1,1205 @@
+// Слой приложения: стекло, фон, desktop-компоновка, карточки.
+// Компоненты Carbon не переопределяются через внутренние классы; меняются только
+// контейнеры приложения и отступы вокруг компонентов.
+@use '@carbon/react/scss/type';
+@use '@carbon/react/scss/theme' as theme;
+@use '@carbon/react/scss/colors';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--app-canvas);
+  color: var(--app-text-primary);
+  overflow-x: hidden;
+}
+
+// ---------- фон: два крупных статичных пятна ----------
+.app-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(42vw 42vw at 12% 18%, var(--app-blob-blue), transparent 70%),
+    radial-gradient(46vw 46vw at 88% 82%, var(--app-blob-lilac), transparent 70%),
+    var(--app-canvas);
+}
+
+.app-root {
+  position: relative;
+  min-height: 100vh;
+}
+
+// ---------- стекло: только крупные панели, без вложенного blur ----------
+.app-glass {
+  position: relative;
+  background: var(--app-glass-surface);
+  -webkit-backdrop-filter: blur(var(--app-glass-blur));
+  backdrop-filter: blur(var(--app-glass-blur));
+  border: 1px solid var(--app-glass-border);
+  border-radius: var(--app-panel-radius);
+  box-shadow: var(--app-glass-shadow);
+}
+
+// Нет backdrop-filter → сплошная поверхность с границей и тенью.
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .app-glass {
+    background: var(--app-solid-surface);
+    border-color: theme.$border-subtle-01;
+  }
+}
+
+// Явный непрозрачный режим (галерея) и reduced transparency.
+[data-glass='opaque'] .app-glass {
+  background: var(--app-solid-surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: theme.$border-subtle-01;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .app-glass {
+    background: var(--app-solid-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: theme.$border-subtle-01;
+  }
+}
+
+@media (forced-colors: active) {
+  .app-glass {
+    background: Canvas;
+    border: 1px solid CanvasText;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+  .app-backdrop {
+    background: Canvas;
+  }
+}
+
+// ---------- шапка ----------
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(244, 247, 252, 0.94);
+  border-bottom: 1px solid theme.$border-subtle-01;
+}
+
+.app-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: var(--app-content-max);
+  margin: 0 auto;
+  padding: 8px 32px;
+  min-height: 56px;
+}
+
+.app-header__brand {
+  @include type.type-style('heading-compact-02');
+  color: theme.$text-primary;
+}
+
+.mode-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mode-tag__info {
+  display: inline-flex;
+  padding: 4px;
+  background: none;
+  border: 0;
+  color: theme.$icon-secondary;
+  cursor: help;
+
+  &:focus-visible {
+    outline: 2px solid theme.$focus;
+    outline-offset: 1px;
+  }
+
+  svg {
+    fill: currentColor;
+  }
+}
+
+.app-header__spacer {
+  flex: 1;
+}
+
+// ---------- основная область ----------
+.app-main {
+  position: relative;
+  z-index: 1;
+  max-width: var(--app-content-max);
+  margin: 0 auto;
+  padding: 32px 32px 64px;
+}
+
+.connection-banner {
+  max-width: 880px;
+  margin: 0 auto 16px;
+
+  .cds--inline-notification,
+  .cds--actionable-notification {
+    max-width: none;
+  }
+}
+
+.split-grid .connection-banner {
+  max-width: none;
+}
+
+// ---------- стартовый экран и экран вопроса ----------
+.start-panel,
+.question-panel {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 48px 32px;
+}
+
+.start-panel {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.start-panel__title {
+  @include type.type-style('heading-05');
+  margin-bottom: 8px;
+  &:focus {
+    outline: none;
+  }
+}
+
+.start-panel__lead {
+  @include type.type-style('body-02');
+  margin-bottom: 8px;
+}
+
+.start-panel__intro {
+  @include type.type-style('body-02');
+  color: var(--app-text-secondary);
+  margin-bottom: 16px;
+}
+
+.start-panel__facts {
+  @include type.type-style('body-01');
+  color: var(--app-text-secondary);
+  margin: 0 0 16px;
+  padding-left: 20px;
+  list-style: disc;
+
+  li + li {
+    margin-top: 4px;
+  }
+}
+
+.start-panel__notice {
+  @include type.type-style('body-01');
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  background: theme.$layer-01;
+  border-left: 3px solid theme.$support-info;
+}
+
+.start-panel__scenario {
+  max-width: 520px;
+  margin-bottom: 24px;
+}
+
+.start-panel__body {
+  min-width: 0;
+}
+
+.question-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// Круг стоит в фиксированной области: его позиция не зависит от длины вопроса.
+.question-panel__ring {
+  display: flex;
+  justify-content: center;
+  min-height: 284px;
+}
+
+.question-panel__head {
+  max-width: var(--app-reading-max);
+  margin: 0 auto;
+  text-align: center;
+  animation: question-enter var(--motion-question-duration) var(--motion-fill-easing);
+}
+
+@keyframes question-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-question-shift));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.question-panel__intro {
+  @include type.type-style('body-01');
+  color: var(--app-text-secondary);
+  margin-bottom: 4px;
+}
+
+.question-panel__counter {
+  @include type.type-style('label-02');
+  color: theme.$text-secondary;
+  margin-bottom: 8px;
+}
+
+.question-panel__title {
+  @include type.type-style('heading-04');
+  color: var(--app-text-primary);
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+
+  &:focus {
+    outline: none;
+  }
+  &:focus-visible {
+    outline: 2px solid theme.$focus;
+    outline-offset: 4px;
+  }
+}
+
+.question-panel__hint {
+  @include type.type-style('body-01');
+  color: var(--app-text-secondary);
+}
+
+.question-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--app-reading-max);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.answer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.first-answer,
+.answer-start,
+.composer,
+.recording-panel,
+.recorded-panel,
+.permission-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.answer-start .answer-actions,
+.first-answer > .answer-actions {
+  justify-content: center;
+}
+
+.demo-hint {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+  padding: 8px 12px;
+  border-left: 3px solid colors.$purple-60;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+// ---------- пустые состояния и карточки (непрозрачные слои внутри стекла) ----------
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  background: theme.$layer-01;
+  border: 1px dashed theme.$border-strong-01;
+  border-radius: 8px;
+}
+
+.empty-state__icon svg {
+  fill: theme.$icon-secondary;
+}
+
+.empty-state__title {
+  @include type.type-style('heading-compact-02');
+}
+
+.empty-state__body {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.permission-panel,
+.recording-panel,
+.recorded-panel {
+  padding: 16px;
+  background: theme.$layer-01;
+  border: 1px solid theme.$border-subtle-01;
+  border-radius: 8px;
+}
+
+.permission-panel__text {
+  @include type.type-style('heading-compact-02');
+}
+
+.permission-panel__hint {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+}
+
+.recording-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  @include type.type-style('heading-compact-02');
+}
+
+.recording-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: theme.$support-error;
+  flex: none;
+}
+
+.recording-timer {
+  @include type.type-style('body-02');
+  color: theme.$text-secondary;
+  font-variant-numeric: tabular-nums;
+}
+
+.recording-offline {
+  @include type.type-style('body-01');
+  color: theme.$text-primary;
+  padding: 8px 12px;
+  background: colors.$yellow-10;
+  border-left: 3px solid theme.$support-warning;
+}
+
+.recorded-panel__audio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+
+  audio {
+    max-width: 100%;
+  }
+}
+
+.recorded-panel__meta {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+}
+
+.processing-controls {
+  display: flex;
+  justify-content: center;
+}
+
+// ---------- проверка ответа ----------
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review__answers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.answer-card {
+  padding: 16px;
+  background: theme.$layer-01;
+  border: 1px solid theme.$border-subtle-01;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.answer-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.answer-card__label {
+  @include type.type-style('heading-compact-01');
+}
+
+.answer-card__rev {
+  @include type.type-style('label-01');
+  color: theme.$text-secondary;
+}
+
+.answer-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.review__inactive,
+.review__note,
+.review__hint {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+}
+
+.review__stale {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.review__done {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  @include type.type-style('body-01');
+  color: theme.$text-primary;
+
+  svg {
+    fill: theme.$support-success;
+  }
+}
+
+.facts-card {
+  padding: 16px;
+  background: theme.$layer-01;
+  border: 1px solid theme.$border-subtle-01;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.facts-card__title {
+  @include type.type-style('heading-compact-02');
+}
+
+.facts-card__subtitle {
+  @include type.type-style('heading-compact-01');
+  margin-top: 8px;
+}
+
+.facts-card__source {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+}
+
+.fact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fact {
+  padding-bottom: 12px;
+  border-bottom: 1px solid theme.$border-subtle-01;
+
+  &:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+.fact__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 0 28px;
+}
+
+.fact__other {
+  @include type.type-style('label-01');
+  color: theme.$text-secondary;
+}
+
+.fact__quote,
+.fact__dep {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+  margin: 4px 0 0 28px;
+  overflow-wrap: anywhere;
+}
+
+.fact__quote-label {
+  color: theme.$text-secondary;
+}
+
+.unit-summary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
+.unit-summary__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  @include type.type-style('body-01');
+
+  svg {
+    flex: none;
+    fill: theme.$icon-secondary;
+  }
+  &[data-valid='true'] svg {
+    fill: theme.$support-success;
+  }
+}
+
+.unit-summary__label {
+  font-weight: 600;
+}
+
+.unit-summary__reason {
+  color: theme.$text-secondary;
+}
+
+.conflict-panel,
+.conflict {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.conflict__variants {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.conflict__variant {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 16px;
+  background: theme.$layer-01;
+  border-left: 3px solid theme.$support-warning;
+}
+
+.conflict__text {
+  @include type.type-style('heading-compact-01');
+}
+
+.conflict__quote {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+}
+
+.conflict__fix {
+  @include type.type-style('body-01');
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.clarification {
+  padding: 16px;
+  background: theme.$layer-01;
+  border: 1px solid theme.$border-interactive;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clarification__eyebrow {
+  @include type.type-style('label-02');
+  color: theme.$text-secondary;
+}
+
+.clarification__question {
+  @include type.type-style('heading-03');
+
+  &:focus {
+    outline: none;
+  }
+  &:focus-visible {
+    outline: 2px solid theme.$focus;
+    outline-offset: 2px;
+  }
+}
+
+.action-error {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .cds--inline-notification {
+    max-width: none;
+  }
+}
+
+.action-error__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.action-error__hint {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+}
+
+.action-error__details {
+  @include type.type-style('label-01');
+  color: theme.$text-secondary;
+
+  summary {
+    cursor: pointer;
+  }
+  summary:focus-visible {
+    outline: 2px solid theme.$focus;
+  }
+  code {
+    font-family: ui-monospace, monospace;
+  }
+}
+
+.slow-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+
+  .cds--inline-notification {
+    max-width: none;
+  }
+}
+
+.section-error {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.question-body .cds--inline-notification,
+.review .cds--inline-notification,
+.facts-card .cds--inline-notification {
+  max-width: none;
+}
+
+// ---------- навигация по вопросам ----------
+.question-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid theme.$border-subtle-01;
+}
+
+.question-nav__steps {
+  display: flex;
+  gap: 8px;
+}
+
+.question-nav__step {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid theme.$border-strong-01;
+  background: theme.$layer-01;
+  color: theme.$text-primary;
+  @include type.type-style('body-compact-01');
+  cursor: pointer;
+
+  &[data-answered='confirmed'] {
+    border-color: theme.$support-success;
+  }
+  &[data-answered='skipped'] {
+    border-style: dashed;
+  }
+  &[data-current='true'] {
+    background: theme.$background-inverse;
+    color: theme.$text-inverse;
+    border-color: theme.$background-inverse;
+  }
+  &:focus-visible {
+    outline: 2px solid theme.$focus;
+    outline-offset: 2px;
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+// ---------- обзор и результат: Carbon Grid, 10 + 6 колонок от 1312 px ----------
+.split-grid {
+  row-gap: 32px;
+}
+
+.split-grid__main,
+.split-grid__side {
+  min-width: 0;
+}
+
+.overview-panel,
+.result-panel,
+.side-panel {
+  padding: 32px;
+}
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+
+  .vpr {
+    align-self: center;
+  }
+}
+
+.side-panel__title {
+  @include type.type-style('heading-03');
+}
+
+.side-panel__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.panel-title {
+  @include type.type-style('heading-05');
+  margin-bottom: 8px;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.panel-lead {
+  @include type.type-style('body-02');
+  color: var(--app-text-secondary);
+  margin-bottom: 24px;
+}
+
+.overview-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.overview-card {
+  padding: 16px;
+  background: theme.$layer-01;
+  border: 1px solid theme.$border-subtle-01;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+
+  .cds--accordion {
+    width: 100%;
+  }
+}
+
+.overview-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.overview-card__title {
+  @include type.type-style('heading-compact-02');
+}
+
+.overview-card__question,
+.overview-card__empty,
+.overview-card__missing {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+}
+
+.overview-card__missing {
+  list-style: disc;
+  padding-left: 20px;
+}
+
+.overview-card__review {
+  @include type.type-style('body-01');
+  color: theme.$text-error;
+}
+
+.source-box__label {
+  @include type.type-style('label-01');
+  color: theme.$text-secondary;
+}
+
+.source-box__quote {
+  @include type.type-style('body-01');
+}
+
+.source-box__meta {
+  color: theme.$text-secondary;
+}
+
+.generate-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.generate-box__gaps {
+  @include type.type-style('heading-compact-01');
+}
+
+.generate-box__note {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+}
+
+.result-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+
+.result-panel__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.result-panel__edited-note {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+  margin-bottom: 16px;
+}
+
+.stale-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+
+  .cds--inline-notification {
+    max-width: none;
+  }
+}
+
+.doc-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 760px;
+}
+
+.doc-section__title {
+  @include type.type-style('heading-03');
+  margin-bottom: 8px;
+}
+
+.doc-section__empty {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  @include type.type-style('body-02');
+  color: theme.$text-secondary;
+}
+
+.doc-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.doc-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+
+  .cds--form-item {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.doc-gaps {
+  padding: 16px;
+  background: theme.$layer-01;
+  border-left: 3px solid theme.$support-warning;
+}
+
+.doc-gaps__note {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+  margin-bottom: 8px;
+}
+
+.doc-gaps__list {
+  list-style: disc;
+  padding-left: 20px;
+  @include type.type-style('body-02');
+}
+
+
+.sources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  @include type.type-style('body-01');
+}
+
+.sources-list__item {
+  display: block;
+}
+
+.sources-list__quote {
+  display: block;
+  color: theme.$text-secondary;
+}
+
+.toast-area {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  z-index: 9000;
+}
+
+// ---------- адаптация окна: только desktop ----------
+// 1024–1055: компактный desktop, поля 24 px, одна колонка, круг 200 px.
+@media (max-width: 1055px) {
+  .app-main {
+    padding: 24px 24px 48px;
+  }
+  .app-header__inner {
+    padding: 8px 24px;
+  }
+  .question-panel__ring {
+    min-height: 264px;
+  }
+}
+
+// От 1584: сетка центрирована, растут боковые поля.
+@media (min-width: 1584px) {
+  .app-main {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+// Узкое окно и увеличение масштаба (< 1024): безопасное перестроение в одну колонку,
+// вертикальная прокрутка, перенос кнопок. Это не отдельная мобильная версия.
+@media (max-width: 1023px) {
+  .app-main {
+    padding: 16px 16px 48px;
+  }
+  .app-header__inner {
+    flex-wrap: wrap;
+    padding: 8px 16px;
+  }
+  .start-panel {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 24px;
+
+    .start-panel__ring {
+      display: flex;
+      justify-content: center;
+    }
+  }
+  .question-panel {
+    padding: 24px 16px;
+  }
+  .overview-panel,
+  .result-panel,
+  .side-panel {
+    padding: 24px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .question-panel__head {
+    animation: none;
+  }
+}
+
+// ---------- галерея разработки ----------
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.gallery-panel {
+  padding: 32px;
+}
+
+.gallery-nav {
+  margin-top: 24px;
+  columns: 2;
+  column-gap: 32px;
+  @include type.type-style('body-01');
+
+  h2 {
+    @include type.type-style('heading-compact-02');
+    margin: 8px 0;
+  }
+  li {
+    margin-bottom: 4px;
+  }
+  a {
+    color: theme.$link-primary;
+  }
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.gallery-cell {
+  padding: 16px 8px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid theme.$border-subtle-01;
+  border-radius: 8px;
+}
+
+.gallery-cell__title {
+  @include type.type-style('heading-compact-01');
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.gallery-playground {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px;
+  margin-top: 16px;
+}
+
+.gallery-playground__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gallery-fieldset legend {
+  @include type.type-style('heading-compact-01');
+  margin-bottom: 8px;
+}
+
+.gallery-range {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  @include type.type-style('body-01');
+  max-width: 320px;
+}
+
+.gallery-components {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+
+  h3 {
+    @include type.type-style('heading-compact-02');
+  }
+}
+
+.gallery-fields,
+.gallery-notes {
+  display: grid;
+  gap: 16px;
+  max-width: 640px;
+
+  .cds--inline-notification,
+  .cds--actionable-notification {
+    max-width: none;
+  }
+}
+
+.gallery-back {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 50;
+  padding: 8px 12px;
+  background: theme.$layer-01;
+  border: 1px solid theme.$border-strong-01;
+  color: theme.$link-primary;
+  @include type.type-style('body-01');
+}
+
+@media (max-width: 1023px) {
+  .gallery-playground {
+    grid-template-columns: 1fr;
+  }
+  .gallery-nav {
+    columns: 1;
+  }
+}
+
+.demo-details {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+
+  summary {
+    cursor: pointer;
+    padding: 4px 0;
+  }
+  summary:focus-visible {
+    outline: 2px solid theme.$focus;
+  }
+  .demo-picker {
+    margin-top: 8px;
+  }
+}
