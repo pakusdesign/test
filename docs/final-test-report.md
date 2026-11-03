@@ -12,6 +12,6 @@ F01: ресурсы запроса принадлежат requestId. Поздн�
 
 Обновлены engines и start.command по ограничениям установленных зависимостей. Рабочие версии: Node 22.22.2+ в ветке 22, 24.15+ в ветке 24 либо 26+. Первые локальные проверки были выполнены на Node 24.13.0 с предупреждением engines. Отдельный итоговый прогон в поддерживаемой версии фиксируется ниже.
 
-npm run eval:live возвращает BLOCKED: отсутствуют DEEPGRAM_API_KEY, ANTHROPIC_API_KEY и LLM_MODEL. Подменять эту проверку demo нельзя. Safari, настоящий микрофон и VoiceOver вручную не проверены. CI на GitHub ещё не запускался.
+npm run eval:live возвращает BLOCKED: отсутствуют DEEPGRAM_API_KEY, ANTHROPIC_API_KEY и LLM_MODEL. Подменять эту проверку demo нельзя. Safari, настоящий микрофон и VoiceOver вручную не проверены. CI запущен после публикации: https://github.com/pakusdesign/test/actions.
 
 Итоговый повтор на поддерживаемом Node 24.22.1: typecheck, lint, 77 unit и 63 integration — pass.
