@@ -210,6 +210,7 @@ export const ConfigResponseSchema = z.strictObject({
   }),
   live: z
     .strictObject({
+      sttProvider: z.enum(['whisper', 'deepgram']).optional(),
       sttConfigured: z.boolean(),
       llmConfigured: z.boolean(),
       sttModel: z.string(),

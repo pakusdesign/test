@@ -15,6 +15,8 @@ export function config(overrides: Partial<ServerConfig> = {}): ServerConfig {
     host: '127.0.0.1',
     deepgramApiKey: null,
     anthropicApiKey: null,
+    sttProvider: 'deepgram',
+    whisper: { binary: '', ffmpeg: '', modelPath: '', language: 'ru' },
     sttModel: 'nova-3',
     sttLanguage: 'ru',
     llmModel: null,

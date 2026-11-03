@@ -16,7 +16,7 @@ import { createBudget } from '../../src/server/budget';
 import { loadDotEnv, loadServerConfig } from '../../src/server/config';
 import { AppError } from '../../src/server/errors';
 import { runAnalysis, runGeneration } from '../../src/server/pipeline';
-import { createProviders } from '../../src/server/providers';
+import { createProviders, liveReadiness } from '../../src/server/providers';
 
 const RUNS = Number(process.env.EVAL_RUNS ?? 3);
 const OUT = path.resolve('docs/evidence/live-eval.json');
@@ -43,7 +43,7 @@ async function main() {
   const missing = [
     !config.anthropicApiKey && 'ANTHROPIC_API_KEY',
     !config.llmModel && 'LLM_MODEL',
-    !config.deepgramApiKey && 'DEEPGRAM_API_KEY',
+    !liveReadiness(config).sttConfigured && 'STT configuration',
   ].filter(Boolean) as string[];
   const started = new Date().toISOString();
   if (!config.anthropicApiKey || !config.llmModel) {
@@ -122,7 +122,7 @@ async function main() {
     { file: 'names-q4.webm', expect: ['sql', 'metabase'] },
     { file: 'silence.webm', expect: [], silence: true },
   ];
-  if (config.deepgramApiKey && existsSync(audioDir)) {
+  if (liveReadiness(config).sttConfigured && existsSync(audioDir)) {
     for (const sc of sttCases) {
       const t0 = Date.now();
       try {
@@ -151,7 +151,7 @@ async function main() {
     note: 'Три прогона — ограниченная проверка, не статистическое доказательство качества.',
     failures,
     results,
-    stt: config.deepgramApiKey ? stt : 'BLOCKED: DEEPGRAM_API_KEY не задан',
+    stt: liveReadiness(config).sttConfigured ? stt : 'BLOCKED: STT не настроен',
   };
   write(report);
   console.log(`Итог: ${report.status}, ошибок ${failures} из ${results.length}. Отчёт: ${OUT}`);

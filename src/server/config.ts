@@ -10,6 +10,8 @@ export interface ServerConfig {
   host: string;
   deepgramApiKey: string | null;
   anthropicApiKey: string | null;
+  sttProvider: 'whisper' | 'deepgram';
+  whisper: { binary: string; ffmpeg: string; modelPath: string; language: string };
   sttModel: string;
   sttLanguage: string;
   llmModel: string | null;
@@ -43,6 +45,8 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env, rootDir =
   if (rawMode !== 'demo' && rawMode !== 'live') {
     throw new Error(`APP_MODE должен быть demo или live, получено: ${rawMode}`);
   }
+  const sttProvider = env.STT_PROVIDER ?? 'whisper';
+  if (sttProvider !== 'whisper' && sttProvider !== 'deepgram') throw new Error('STT_PROVIDER должен быть whisper или deepgram');
   const clientDir = path.join(rootDir, 'dist', 'client');
   return {
     mode: rawMode,
@@ -50,7 +54,9 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env, rootDir =
     host: nonEmpty(env.HOST) ?? '127.0.0.1',
     deepgramApiKey: nonEmpty(env.DEEPGRAM_API_KEY),
     anthropicApiKey: nonEmpty(env.ANTHROPIC_API_KEY),
-    sttModel: nonEmpty(env.STT_MODEL) ?? 'nova-3',
+    sttProvider,
+    whisper: { binary: env.WHISPER_BINARY ?? '', ffmpeg: env.FFMPEG_BINARY ?? '', modelPath: env.WHISPER_MODEL_PATH ?? '', language: nonEmpty(env.STT_LANGUAGE) ?? 'ru' },
+    sttModel: sttProvider === 'whisper' ? 'whisper.cpp/' + path.basename(env.WHISPER_MODEL_PATH || 'not-configured') : nonEmpty(env.STT_MODEL) ?? 'nova-3',
     sttLanguage: nonEmpty(env.STT_LANGUAGE) ?? 'ru',
     llmModel: nonEmpty(env.LLM_MODEL),
     llmMaxTokens: intOr(env.LLM_MAX_TOKENS, 4096, 512, 32000),

@@ -14,7 +14,7 @@ export function StartScreen() {
   const scenario = scenarioOf(s);
   const liveMissing =
     config?.mode === 'live' && config.live
-      ? [!config.live.sttConfigured && 'распознавание речи (DEEPGRAM_API_KEY)', !config.live.llmConfigured && 'анализ и генерация (ANTHROPIC_API_KEY, LLM_MODEL)'].filter(Boolean)
+      ? [!config.live.sttConfigured && 'распознавание речи', !config.live.llmConfigured && 'анализ и генерация'].filter(Boolean)
       : [];
   return (
     <GlassPanel className="start-panel" labelledBy="start-title">
@@ -34,7 +34,7 @@ export function StartScreen() {
         </ul>
         {config?.mode === 'live' ? (
           <p className="start-panel__notice">
-            Аудио будет отправлено сервису распознавания. Текст будет отправлен сервису генерации.
+            {config.live?.sttProvider === 'whisper' ? 'Речь распознаётся на компьютере, где запущен сервер. Внешний сервис распознавания не используется.' : 'Аудио будет отправлено сервису распознавания.'} Текст при анализе будет отправлен сервису генерации.
           </p>
         ) : null}
         {liveMissing.length > 0 ? (
@@ -43,7 +43,7 @@ export function StartScreen() {
               kind="warning"
               lowContrast
               hideCloseButton
-              title="Обработка сейчас недоступна"
+              title="Не все этапы подключены"
               subtitle={`Live-режим не настроен: ${liveMissing.join('; ')}. Ответы можно ввести, но анализ вернёт ошибку. Демонстрация не включается автоматически.`}
             />
           </div>

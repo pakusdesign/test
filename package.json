@@ -20,7 +20,8 @@
     "eval:live": "tsx tests/evals/live-eval.ts",
     "check:contrast": "tsx scripts/contrast-check.ts",
     "build": "vite build && vite build --ssr src/server/index.ts",
-    "start": "node dist/server/index.js"
+    "start": "node dist/server/index.js",
+    "eval:whisper": "tsx tests/evals/whisper-eval.ts"
   },
   "dependencies": {
     "@carbon/icons-react": "11.91.0",

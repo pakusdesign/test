@@ -32,7 +32,7 @@ function ModeTag() {
   return (
     <div className="mode-tag" data-testid="mode-tag" data-mode="live">
       <Tag type={ready ? 'green' : 'red'} size="md">
-        {ready ? 'Live' : 'Live не настроен'}
+        {ready ? 'Live' : config.live?.sttConfigured ? 'Речь подключена · анализ не настроен' : 'Live не настроен'}
       </Tag>
     </div>
   );

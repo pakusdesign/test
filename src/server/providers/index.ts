@@ -2,6 +2,7 @@ import type { ServerConfig } from '../config';
 import { AppError } from '../errors';
 import { loadPrompts } from '../prompts';
 import { AnthropicAnalyzer, AnthropicClient, AnthropicGenerator } from './anthropic';
+import { WhisperTranscriber, whisperConfigured } from './whisper';
 import { DeepgramTranscriber } from './deepgram';
 import { FixtureAnalyzer, FixtureTranscriber, TemplateGenerator } from './fixture';
 import type { Analyzer, Generator, Providers, Transcriber } from './types';
@@ -30,7 +31,7 @@ class UnconfiguredProvider implements Transcriber, Analyzer, Generator {
 
 export function liveReadiness(config: ServerConfig): { sttConfigured: boolean; llmConfigured: boolean } {
   return {
-    sttConfigured: Boolean(config.deepgramApiKey),
+    sttConfigured: config.sttProvider === 'whisper' ? whisperConfigured(config.whisper) : Boolean(config.deepgramApiKey),
     llmConfigured: Boolean(config.anthropicApiKey && config.llmModel),
   };
 }
@@ -39,7 +40,9 @@ export function createProviders(config: ServerConfig, fetchImpl?: typeof fetch):
   if (config.mode === 'demo') {
     return { transcriber: new FixtureTranscriber(), analyzer: new FixtureAnalyzer(), generator: new TemplateGenerator() };
   }
-  const transcriber: Transcriber = config.deepgramApiKey
+  const transcriber: Transcriber = config.sttProvider === 'whisper'
+    ? new WhisperTranscriber(config.whisper)
+    : config.deepgramApiKey
     ? new DeepgramTranscriber({ apiKey: config.deepgramApiKey, model: config.sttModel, language: config.sttLanguage, fetchImpl })
     : new UnconfiguredProvider(config.sttModel, 'DEEPGRAM_API_KEY');
   if (!config.anthropicApiKey || !config.llmModel) {

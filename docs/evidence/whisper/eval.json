@@ -1,0 +1,87 @@
+{
+  "date": "2026-11-03T21:25:47.655Z",
+  "model": "whisper.cpp/ggml-small.bin",
+  "syntheticAudio": true,
+  "results": [
+    {
+      "qualityPassed": null,
+      "file": "quiet-q1.webm",
+      "status": 200,
+      "durationMs": 849,
+      "pass": true,
+      "response": {
+        "schemaVersion": "1.0",
+        "requestId": "whisper-evaluation",
+        "sessionRevision": 0,
+        "answerId": "a1",
+        "text": "Ежедневные маянии бьет от камер платы и промирает от черты покамерцы.",
+        "language": "ru",
+        "source": "provider"
+      }
+    },
+    {
+      "qualityPassed": null,
+      "file": "quiet-q2.webm",
+      "status": 200,
+      "durationMs": 630,
+      "pass": true,
+      "response": {
+        "schemaVersion": "1.0",
+        "requestId": "whisper-evaluation",
+        "sessionRevision": 0,
+        "answerId": "a1",
+        "text": "Работает надплотежным обувьем магазина. Его завоорачивать и прикинуть успешных платежей.",
+        "language": "ru",
+        "source": "provider"
+      }
+    },
+    {
+      "qualityPassed": null,
+      "file": "names-q4.webm",
+      "status": 200,
+      "durationMs": 747,
+      "pass": true,
+      "response": {
+        "schemaVersion": "1.0",
+        "requestId": "whisper-evaluation",
+        "sessionRevision": 0,
+        "answerId": "a1",
+        "text": "В НЕСКИЕ ЭЛИМИТАБИС ЗАНИВАНОКАПЛАТЫ ПАЙТАНДЮЛАТИН",
+        "language": "ru",
+        "source": "provider"
+      }
+    },
+    {
+      "qualityPassed": true,
+      "file": "local-russian.webm",
+      "status": 200,
+      "durationMs": 829,
+      "pass": true,
+      "response": {
+        "schemaVersion": "1.0",
+        "requestId": "whisper-evaluation",
+        "sessionRevision": 0,
+        "answerId": "a1",
+        "text": "Каждый день сотрудник проверяет причины отказов оплаты и готовит отчеты по конверсии. В ближайшие 6 месяцев он работает над платежным модулем интернет-магазина.",
+        "language": "ru",
+        "source": "provider"
+      }
+    },
+    {
+      "qualityPassed": null,
+      "file": "silence.webm",
+      "status": 422,
+      "durationMs": 13,
+      "pass": true,
+      "response": {
+        "schemaVersion": "1.0",
+        "requestId": "whisper-evaluation",
+        "error": {
+          "code": "NO_SPEECH",
+          "message": "Не удалось распознать речь",
+          "retryable": false
+        }
+      }
+    }
+  ]
+}

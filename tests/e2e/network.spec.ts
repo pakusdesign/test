@@ -275,7 +275,7 @@ test('S24 / T19: live без настройки — ошибка конфигу�
   await page.route('**/api/analyze', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: errorBody('CONFIGURATION_ERROR', { retryable: false }) }));
   await page.goto('/');
   await expect(page.getByTestId('mode-tag')).toContainText('Live не настроен');
-  await expect(page.locator('[data-state-id="S24"]')).toContainText('Обработка сейчас недоступна');
+  await expect(page.locator('[data-state-id="S24"]')).toContainText('Не все этапы подключены');
   await expect(page.getByText('Аудио будет отправлено сервису распознавания')).toBeVisible();
   await page.getByRole('button', { name: 'Начать' }).click();
   await submitText(page, 'Пишет отчёты для бухгалтерии.');

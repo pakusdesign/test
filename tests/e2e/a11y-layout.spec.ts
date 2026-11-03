@@ -67,6 +67,10 @@ test('T18: весь путь вопроса доступен с клавиату
 
 test('T18: axe — нет критических и серьёзных нарушений на основных экранах', async ({ page }) => {
   const scan = async (label: string) => {
+    // Scan the settled UI, not the disabled-to-enabled button color transition.
+    await page.evaluate(async () => {
+      await Promise.all(document.getAnimations().filter(a => a.effect?.getTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined)));
+    });
     const result = await new AxeBuilder({ page: page as never }).withTags(['wcag2a', 'wcag2aa']).analyze();
     const bad = result.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
     expect(bad.map((v) => `${label}: ${v.id} (${v.nodes.length})`)).toEqual([]);
