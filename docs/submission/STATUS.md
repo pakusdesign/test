@@ -15,7 +15,7 @@
 | Документация разработчика и агента | Сделано | README, спецификации, промпты, схемы, журнал |
 | Пользовательская презентация | Сделано | user-presentation.pptx, 6 слайдов |
 | Короткое видео demo | Сделано | demo.webm, полный путь с уточнением и экспортом |
-| CI | Запущено | https://github.com/pakusdesign/test/actions; результат см. в GitHub |
+| CI | Пройдено | https://github.com/pakusdesign/test/actions/runs/41706967508; код e1e2cd3 |
 | Публичный репозиторий | Опубликован | https://github.com/pakusdesign/test |
 | Публичный deploy | Не выполнен | Вместо него приложено видео demo |
 
