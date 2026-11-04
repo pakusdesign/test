@@ -47,7 +47,7 @@ import {
 import type { Answer, SessionState } from '../state/types';
 
 function isBusy(s: SessionState): boolean {
-  return Boolean(s.request) || s.stage === 'recording' || s.stage === 'requesting_permission';
+  return Boolean(s.request && s.request.questionId === currentQuestionId(s)) || s.stage === 'recording' || s.stage === 'requesting_permission';
 }
 
 export function QuestionScreen() {
@@ -81,6 +81,9 @@ function QuestionBody({ q }: { q: QuestionId }) {
   return (
     <div className="question-body">
       {error ? <ActionErrorNotice error={error} /> : null}
+      {s.request?.op === 'analyze' && s.request.questionId === q && s.stage !== 'analyzing' ? (
+        <InlineNotification kind="info" lowContrast hideCloseButton title="Анализируем ответ" subtitle="Ответ сохранён. Можно перейти к следующему вопросу и вернуться после обработки." />
+      ) : null}
       {hasAnswers ? <ReviewPanel q={q} /> : <FirstAnswer q={q} />}
       <SlowNotice />
     </div>
@@ -307,6 +310,7 @@ function ProcessingControls() {
   const actions = useActions();
   return (
     <div className="processing-controls" data-state-id="S14">
+      <p>Ответ сохранён. Пока идёт анализ, можно перейти к следующему вопросу.</p>
       <Button kind="ghost" size="md" onClick={() => actions.cancelRequest()}>
         Отменить обработку
       </Button>
@@ -655,7 +659,7 @@ function ClarificationPanel({ q, hasFacts }: { q: QuestionId; hasFacts: boolean 
 function QuestionNav({ q }: { q: QuestionId }) {
   const s = useSession();
   const actions = useActions();
-  const busy = isBusy(s);
+  const busy = s.stage === 'recording' || s.stage === 'requesting_permission' || Boolean(s.request && s.request.op !== 'analyze');
   const last = q === 'q4';
   return (
     <nav className="question-nav" aria-label="Навигация по вопросам">
@@ -671,7 +675,7 @@ function QuestionNav({ q }: { q: QuestionId }) {
               data-current={id === q ? 'true' : 'false'}
               data-answered={s.answered[id] ?? 'none'}
               aria-current={id === q ? 'step' : undefined}
-              aria-label={`Вопрос ${i + 1}${s.answered[id] === 'confirmed' ? ', проверен' : s.answered[id] === 'skipped' ? ', пропущен' : ''}`}
+              aria-label={`Вопрос ${i + 1}${s.request?.op === 'analyze' && s.request.questionId === id ? ', обрабатывается' : s.answered[id] === 'confirmed' ? ', проверен' : s.answered[id] === 'skipped' ? ', пропущен' : ''}`}
               disabled={busy}
               onClick={() => actions.goToQuestion(i)}
             >
@@ -680,7 +684,7 @@ function QuestionNav({ q }: { q: QuestionId }) {
           </li>
         ))}
       </ol>
-      {s.answered[q] ? (
+      {s.answered[q] || activeAnswersFor(s, q).length > 0 ? (
         <Button kind="ghost" size="md" renderIcon={ArrowRight} disabled={busy} onClick={() => actions.next()}>
           {last ? 'К обзору' : 'Далее'}
         </Button>
