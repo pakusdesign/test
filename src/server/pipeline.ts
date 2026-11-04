@@ -53,9 +53,22 @@ export function checkAnalysisOutput(output: ModelOutput, answers: readonly Answe
   if (output.raw === undefined) return { issues: ['Ответ не является корректным JSON'] };
   const parsed = AnalysisSchema.safeParse(output.raw);
   if (!parsed.success) return { issues: zodIssues(parsed.error) };
-  const relations = validateAnalysisRelations(parsed.data, answers);
+  // Одна и та же выдержка не может быть сразу первой и второй задачей.
+  // Удаляем только повторную ссылку; новых сведений не добавляем.
+  const task1 = new Set(parsed.data.units.find((unit) => unit.id === 'q1.task1')?.factIds ?? []);
+  const normalized: Analysis = {
+    ...parsed.data,
+    units: parsed.data.units.map((unit) => {
+      if (unit.id !== 'q1.task2') return unit;
+      const factIds = unit.factIds.filter((id) => !task1.has(id));
+      return factIds.length === 0 && unit.state === 'known'
+        ? { ...unit, factIds, state: 'missing' as const }
+        : { ...unit, factIds };
+    }),
+  };
+  const relations = validateAnalysisRelations(normalized, answers);
   if (relations.length > 0) return { issues: relations.map((i) => `${i.path}: ${i.message}`) };
-  return { analysis: parsed.data, issues: [] };
+  return { analysis: normalized, issues: [] };
 }
 
 export interface AnalysisResult {
