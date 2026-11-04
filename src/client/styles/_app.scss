@@ -549,36 +549,6 @@ body {
   color: theme.$text-secondary;
 }
 
-.unit-summary {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 4px;
-}
-
-.unit-summary__item {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  @include type.type-style('body-01');
-
-  svg {
-    flex: none;
-    fill: theme.$icon-secondary;
-  }
-  &[data-valid='true'] svg {
-    fill: theme.$support-success;
-  }
-}
-
-.unit-summary__label {
-  font-weight: 600;
-}
-
-.unit-summary__reason {
-  color: theme.$text-secondary;
-}
-
 .conflict-panel,
 .conflict {
   display: flex;
