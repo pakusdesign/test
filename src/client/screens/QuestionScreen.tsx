@@ -65,10 +65,12 @@ export function QuestionScreen() {
         <SessionRing />
       </div>
       <div className="question-panel__head" key={q}>
-        <h1 className="question-panel__intro">{INTRO_TEXT}</h1>
-        <h2 id="question-title" className="question-panel__title" ref={headingRef} tabIndex={-1}>
-          {def.text}
-        </h2>
+        {q === QUESTION_IDS[0] ? <h1 className="question-panel__intro">{INTRO_TEXT}</h1> : null}
+        {q === QUESTION_IDS[0] ? (
+          <h2 id="question-title" className="question-panel__title" ref={headingRef} tabIndex={-1}>{def.text}</h2>
+        ) : (
+          <h1 id="question-title" className="question-panel__title" ref={headingRef} tabIndex={-1}>{def.text}</h1>
+        )}
         <p className="question-panel__hint">{def.hint}</p>
       </div>
       <SectionBoundary name="Вопрос">
