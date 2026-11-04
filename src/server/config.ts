@@ -67,7 +67,7 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env, rootDir =
     llmModel: nonEmpty(env.LLM_MODEL) ?? (llmProvider === 'ollama' ? 'qwen3:4b-instruct' : null),
     llmMaxTokens: intOr(env.LLM_MAX_TOKENS, 4096, 512, 32000),
     rateLimitPerMinute: intOr(env.RATE_LIMIT_PER_MINUTE, 20, 1, 10000),
-    providerTimeoutMs: intOr(env.PROVIDER_TIMEOUT_MS, LIMITS.providerTimeoutMs, 1000, 120000),
+    providerTimeoutMs: intOr(env.PROVIDER_TIMEOUT_MS, LIMITS.providerTimeoutMs, 1000, 300000),
     clientDir: existsSync(path.join(clientDir, 'index.html')) ? clientDir : null,
     rootDir,
   };
