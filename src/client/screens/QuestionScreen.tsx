@@ -7,12 +7,10 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckmarkFilled,
-  CircleDash,
   Edit,
   Microphone,
   StopFilledAlt,
   TrashCan,
-  WarningAltFilled,
 } from '@carbon/icons-react';
 import { useMemo, useRef } from 'react';
 import { evaluateFacts, unitsByFact, type FactStatus } from '../../shared/completeness';
@@ -45,7 +43,6 @@ import {
   factsInView,
   hasDirtyDrafts,
   isAnalysisFresh,
-  unitLabelReason,
 } from '../state/transitions';
 import type { Answer, SessionState } from '../state/types';
 
@@ -372,15 +369,6 @@ function ReviewPanel({ q }: { q: QuestionId }) {
       <ConflictPanel q={q} onEdit={focusEditor} />
       <FactsCard q={q} title="Сведения из ответа" />
 
-      <ul className="unit-summary" aria-label="Что известно по вопросу">
-        {questionUnits.map((u) => (
-          <li key={u.id} className="unit-summary__item" data-valid={u.valid ? 'true' : 'false'}>
-            {u.valid ? <CheckmarkFilled size={16} aria-hidden="true" /> : u.reason === 'conflict' ? <WarningAltFilled size={16} aria-hidden="true" /> : <CircleDash size={16} aria-hidden="true" />}
-            <span className="unit-summary__label">{UNIT_LABELS[u.id]}</span>
-            <span className="unit-summary__reason">{unitLabelReason(u)}</span>
-          </li>
-        ))}
-      </ul>
       {unknownStated ? (
         <p className="review__note">Вы указали, что сведений пока нет. Это честный ответ, но он не повышает полноту.</p>
       ) : null}
