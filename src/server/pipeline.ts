@@ -7,6 +7,8 @@ import {
   evaluateUnits,
   questionStatuses,
   usableFacts,
+  checkEvidence,
+  quoteFoundIn,
   type AnswerRef,
 } from '../shared/completeness';
 import { UNIT_IDS } from '../shared/constants';
@@ -49,16 +51,53 @@ export function activeAnswers(snapshot: Snapshot): AnswerRef[] {
 }
 
 /** Проверяет вывод модели анализа. Возвращает анализ или список нарушений. */
-export function checkAnalysisOutput(output: ModelOutput, answers: readonly AnswerRef[]): { analysis?: Analysis; issues: string[] } {
+export function checkAnalysisOutput(output: ModelOutput, answers: readonly AnswerRef[], recover = false): { analysis?: Analysis; issues: string[] } {
   if (output.raw === undefined) return { issues: ['Ответ не является корректным JSON'] };
   const parsed = AnalysisSchema.safeParse(output.raw);
   if (!parsed.success) return { issues: zodIssues(parsed.error) };
+  if (!recover) {
+    const relations = validateAnalysisRelations(parsed.data, answers);
+    return relations.length > 0
+      ? { issues: relations.map((issue) => `${issue.path}: ${issue.message}`) }
+      : { analysis: parsed.data, issues: [] };
+  }
+  const active = answers.filter((answer) => answer.active);
+  const originalIds = new Set(parsed.data.facts.map((fact) => fact.id));
+  const byId = new Map(active.map((answer) => [answer.id, answer]));
+  let facts = parsed.data.facts.flatMap((fact) => {
+    const evidence = fact.evidence.flatMap((source) => {
+      if (!checkEvidence(source, byId)) return [source];
+      const matching = active.filter((answer) =>
+        answer.questionId === fact.questionId && quoteFoundIn(source.quote, answer.text));
+      return matching.length === 1
+        ? [{ ...source, answerId: matching[0]!.id, answerRevision: matching[0]!.revision }]
+        : [];
+    });
+    return evidence.length > 0 ? [{ ...fact, evidence }] : [];
+  });
+  // Факты без подтверждённого источника и зависимые от них факты не учитываются.
+  let ids = new Set(facts.map((fact) => fact.id));
+  while (facts.some((fact) => fact.dependsOn.some((id) => !ids.has(id)))) {
+    facts = facts.filter((fact) => fact.dependsOn.every((id) => ids.has(id)));
+    ids = new Set(facts.map((fact) => fact.id));
+  }
+  const safeUnits = parsed.data.units.map((unit) => {
+    const factIds = unit.factIds.filter((id) => ids.has(id) || !originalIds.has(id));
+    return factIds.length === 0 && (unit.state === 'known' || unit.state === 'not_required')
+      ? { ...unit, factIds, state: 'missing' as const }
+      : { ...unit, factIds };
+  });
   // Одна и та же выдержка не может быть сразу первой и второй задачей.
   // Удаляем только повторную ссылку; новых сведений не добавляем.
-  const task1 = new Set(parsed.data.units.find((unit) => unit.id === 'q1.task1')?.factIds ?? []);
+  const task1 = new Set(safeUnits.find((unit) => unit.id === 'q1.task1')?.factIds ?? []);
   const normalized: Analysis = {
     ...parsed.data,
-    units: parsed.data.units.map((unit) => {
+    facts,
+    conflicts: parsed.data.conflicts.flatMap((conflict) => {
+      const factIds = conflict.factIds.filter((id) => ids.has(id) || !originalIds.has(id));
+      return factIds.length > 0 ? [{ ...conflict, factIds }] : [];
+    }),
+    units: safeUnits.map((unit) => {
       if (unit.id !== 'q1.task2') return unit;
       const factIds = unit.factIds.filter((id) => !task1.has(id));
       return factIds.length === 0 && unit.state === 'known'
@@ -106,7 +145,7 @@ export async function runAnalysis(params: {
         }),
         { onAttempt: () => (meta.attempts += 1) },
       );
-      const checked = checkAnalysisOutput(output, nonEmpty);
+      const checked = checkAnalysisOutput(output, nonEmpty, pass === 1);
       if (checked.analysis) {
         const normalized = assignServerIds(checked.analysis);
         const issues = validateAnalysisRelations(normalized, nonEmpty);
