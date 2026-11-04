@@ -7,7 +7,7 @@ import {
 } from '../../shared/completeness';
 import { QUESTION_IDS } from '../../shared/constants';
 import { useActions, useSession } from '../state/store';
-import { unitsOf } from '../state/transitions';
+import { currentQuestionId, unitsOf } from '../state/transitions';
 import type { ActionError, ErrorActionId, SessionState } from '../state/types';
 
 export function GlassPanel({ children, className, as = 'section', labelledBy }: {
@@ -103,7 +103,7 @@ export function ActionErrorNotice({ error, compact }: { error: ActionError; comp
 export function SlowNotice() {
   const s = useSession();
   const actions = useActions();
-  if (!s.request || !s.slow) return null;
+  if (!s.request || !s.slow || (s.screen === 'question' && s.request.questionId !== currentQuestionId(s))) return null;
   return (
     <div className="slow-notice" data-state-id="S15">
       <InlineNotification
