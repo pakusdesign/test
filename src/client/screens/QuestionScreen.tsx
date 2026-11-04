@@ -386,7 +386,7 @@ function ReviewPanel({ q }: { q: QuestionId }) {
       ) : null}
 
       <div className="answer-actions">
-        <Button kind="primary" size="lg" renderIcon={CheckmarkFilled} disabled={!canConfirm} onClick={() => actions.confirm()}>
+        <Button kind={clarifying ? 'tertiary' : 'primary'} size="lg" renderIcon={CheckmarkFilled} disabled={!canConfirm} onClick={() => actions.confirm()}>
           Подтвердить сведения
         </Button>
         <Button kind="tertiary" size="lg" renderIcon={Edit} disabled={busy} onClick={focusEditor}>
@@ -698,7 +698,7 @@ function QuestionNav({ q }: { q: QuestionId }) {
         ))}
       </ol>
       {s.answered[q] ? (
-        <Button kind="primary" size="md" renderIcon={ArrowRight} disabled={busy} onClick={() => actions.next()}>
+        <Button kind="ghost" size="md" renderIcon={ArrowRight} disabled={busy} onClick={() => actions.next()}>
           {last ? 'К обзору' : 'Далее'}
         </Button>
       ) : (
