@@ -379,6 +379,11 @@ function ReviewPanel({ q }: { q: QuestionId }) {
         <Button kind="tertiary" size="lg" renderIcon={Edit} disabled={busy} onClick={focusEditor}>
           Исправить
         </Button>
+        {fresh ? (
+          <Button kind="ghost" size="md" disabled={busy} onClick={() => void actions.reanalyze()}>
+            Проверить снова
+          </Button>
+        ) : null}
       </div>
       {confirmHint && !busy ? <p className="review__hint">{confirmHint}</p> : null}
       {s.answered[q] === 'confirmed' && !clarifying && !inInput ? (
