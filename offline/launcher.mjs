@@ -85,7 +85,7 @@ async function main() {
       LLM_PROVIDER: 'ollama',
       LLM_MODEL: metadata.ollama.model,
       OLLAMA_URL: `${ollamaUrl}/api/chat`,
-      PROVIDER_TIMEOUT_MS: '120000',
+      PROVIDER_TIMEOUT_MS: '300000',
       ...(!windows ? { DYLD_LIBRARY_PATH: path.join(root, 'bin', 'whisper') } : {}),
     };
     appProcess = spawn(process.execPath, [appEntry], { cwd: root, env: appEnv, stdio: 'inherit' });
