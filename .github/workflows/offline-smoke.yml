@@ -29,7 +29,7 @@ jobs:
           $app = "$env:RUNNER_TEMP/app/vacancy-brief-windows-x64"
           New-Item -ItemType Directory -Force "$app/model-assets" | Out-Null
           Copy-Item "$env:RUNNER_TEMP/assets/ollama-runtime-windows-x64.zip", "$env:RUNNER_TEMP/assets/ggml-small.bin", "$env:RUNNER_TEMP/assets/qwen3-4b-instruct.part-01", "$env:RUNNER_TEMP/assets/qwen3-4b-instruct.part-02" "$app/model-assets/"
-      - name: Start completely local application
+      - name: Start and exercise completely local application
         shell: pwsh
         run: |
           $app = "$env:RUNNER_TEMP/app/vacancy-brief-windows-x64"
@@ -50,17 +50,11 @@ jobs:
             throw 'Автономный пакет не запустился на Windows.'
           }
           Write-Output 'Windows: локальный STT и LLM готовы.'
-      - name: Transcribe audio without cloud keys
-        shell: pwsh
-        run: |
           $form = @('requestId=offline-windows-stt','sessionRevision=0','answerId=a1','audio=@tests/evals/audio/local-russian.webm;type=audio/webm')
           $body = & curl.exe -sS --max-time 120 -F $form[0] -F $form[1] -F $form[2] -F $form[3] 'http://127.0.0.1:3200/api/transcribe'
           $result = $body | ConvertFrom-Json
           if (-not $result.text -or $result.source -ne 'provider') { throw "Распознавание не сработало: $body" }
           Write-Output 'Windows: речь распознана локально.'
-      - name: Analyze answer without cloud keys
-        shell: pwsh
-        run: |
           $body = @{ requestId='offline-windows-analysis'; snapshot=@{ sessionRevision=1; answers=@(@{ id='a1'; questionId='q1'; revision=1; text='Каждый день специалист проверяет причины отказов оплаты и готовит отчёты по конверсии.'; active=$true }); confirmedFactIds=@() } } | ConvertTo-Json -Depth 10
           $result = Invoke-RestMethod 'http://127.0.0.1:3200/api/analyze' -Method Post -Body $body -ContentType 'application/json' -TimeoutSec 130
           if ($result.source -ne 'provider' -or $result.analysis.facts.Count -lt 1) { throw 'Модель не выделила факты.' }
