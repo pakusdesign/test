@@ -151,6 +151,19 @@ describe('ответы модели анализа (T16)', () => {
     expect(res.body.analysis.units.find((unit: { id: string }) => unit.id === 'q1.task2')).toMatchObject({ state: 'missing', factIds: [] });
   });
 
+  it('неподтверждённая цитата после repair → факт исключён без выдуманного прогресса', async () => {
+    const { analyzer } = scriptedAnalyzer([async (_s, input) => {
+      const analysis = validFor(input);
+      analysis.facts[0]!.evidence[0]!.quote = 'несуществующая цитата';
+      return output(analysis);
+    }]);
+    const { app } = appWith({ analyzer });
+    const res = await request(app).post('/api/analyze').send({ requestId: rid(), snapshot: snapshot(fullAnswers) });
+    expect(res.status).toBe(200);
+    expect(res.body.analysis.facts).toHaveLength(analysisFull.facts.length - 1);
+    expect(res.body.analysis.units.find((unit: { id: string }) => unit.id === 'q1.task1')).toMatchObject({ state: 'missing', factIds: [] });
+  });
+
   it('неверный JSON дважды → 422 INVALID_MODEL_OUTPUT, ровно один repair', async () => {
     const { analyzer, calls } = scriptedAnalyzer([async () => ({ raw: undefined, rawText: '{oops' })]);
     const { app, logs } = appWith({ analyzer });
