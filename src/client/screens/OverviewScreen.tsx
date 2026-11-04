@@ -60,6 +60,11 @@ export function OverviewScreen() {
                 />
               ))}
             </div>
+            {statuses[QUESTION_IDS[firstEmpty]!] !== 'complete' ? (
+              <Button kind="tertiary" size="md" renderIcon={Edit} onClick={() => actions.goToQuestion(firstEmpty)}>
+                Вернуться к вопросу с пробелами
+              </Button>
+            ) : null}
           </SectionBoundary>
         </GlassPanel>
       </Column>
@@ -106,7 +111,7 @@ export function OverviewScreen() {
               </p>
             </div>
           )}
-          <Button kind="ghost" size="md" renderIcon={ArrowLeft} disabled={Boolean(s.request)} onClick={() => actions.back()}>
+          <Button kind="ghost" size="md" renderIcon={ArrowLeft} disabled={Boolean(s.request && s.request.op !== 'analyze')} onClick={() => actions.back()}>
             К вопросам
           </Button>
         </GlassPanel>
@@ -139,8 +144,8 @@ function QuestionCard({ q, status, answered, onEdit, units, evals }: {
         <h2 id={`ov-${q}`} className="overview-card__title">
           {def.index + 1}. {def.shortTitle}
         </h2>
-        <Tag type={STATUS_TAG[status]} size="sm">
-          {STATUS_TEXT[status]}
+        <Tag type={s.request?.op === 'analyze' && s.request.questionId === q ? 'blue' : STATUS_TAG[status]} size="sm">
+          {s.request?.op === 'analyze' && s.request.questionId === q ? 'Анализируется' : STATUS_TEXT[status]}
         </Tag>
         <Tag type={answered ? 'cool-gray' : 'outline'} size="sm">
           {answered === 'confirmed' ? 'Проверен' : answered === 'skipped' ? 'Пропущен' : 'Не проверен'}
