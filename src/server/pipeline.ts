@@ -8,6 +8,7 @@ import {
   questionStatuses,
   usableFacts,
   checkEvidence,
+  normalizeForQuote,
   quoteFoundIn,
   type AnswerRef,
 } from '../shared/completeness';
@@ -50,21 +51,69 @@ export function activeAnswers(snapshot: Snapshot): AnswerRef[] {
   return snapshot.answers.filter((a) => a.active);
 }
 
+/** Не даёт одной фразе закрыть несвязанные вопросы. Пропуски остаются пропусками. */
+function pruneRepeatedFacts(analysis: Analysis, answers: readonly AnswerRef[]): Analysis {
+  const answerById = new Map(answers.filter((answer) => answer.active).map((answer) => [answer.id, answer]));
+  const future = /будет|продолжит|планирует|возьм[её]тся|перейд[её]т|следующ|ближайш|предстоит|нов(?:ый|ом) проект/iu;
+  const skills = /использует|владе|знает|знани|навык|инструмент|программ|технолог|работает в|опыт с/iu;
+  const supported = analysis.facts.filter((fact) => {
+    if (fact.questionId !== 'q3' && fact.questionId !== 'q4') return true;
+    if (fact.evidence.some((source) => answerById.get(source.answerId)?.questionId === fact.questionId)) return true;
+    const quote = fact.evidence.map((source) => source.quote).join(' ');
+    return fact.questionId === 'q3' ? future.test(quote) : skills.test(quote);
+  });
+  const prioritized = [...supported].sort((left, right) => {
+    const direct = (fact: Fact) => Number(fact.evidence.some((source) => answerById.get(source.answerId)?.questionId === fact.questionId));
+    return direct(right) - direct(left);
+  });
+  const seen = new Map<string, Fact>();
+  const keptIds = new Set<string>();
+  for (const fact of prioritized) {
+    const key = normalizeForQuote(fact.text);
+    const previous = seen.get(key);
+    if (previous && previous.questionId !== fact.questionId) continue;
+    seen.set(key, fact);
+    keptIds.add(fact.id);
+  }
+  let facts = analysis.facts.filter((fact) => keptIds.has(fact.id));
+  let ids = new Set(facts.map((fact) => fact.id));
+  while (facts.some((fact) => fact.dependsOn.some((id) => !ids.has(id)))) {
+    facts = facts.filter((fact) => fact.dependsOn.every((id) => ids.has(id)));
+    ids = new Set(facts.map((fact) => fact.id));
+  }
+  const originalIds = new Set(analysis.facts.map((fact) => fact.id));
+  return {
+    ...analysis,
+    facts,
+    units: analysis.units.map((unit) => {
+      const factIds = unit.factIds.filter((id) => ids.has(id) || !originalIds.has(id));
+      return factIds.length === 0 && (unit.state === 'known' || unit.state === 'not_required')
+        ? { ...unit, factIds, state: 'missing' as const }
+        : { ...unit, factIds };
+    }),
+    conflicts: analysis.conflicts.flatMap((conflict) => {
+      const factIds = conflict.factIds.filter((id) => ids.has(id) || !originalIds.has(id));
+      return factIds.length > 0 ? [{ ...conflict, factIds }] : [];
+    }),
+  };
+}
+
 /** Проверяет вывод модели анализа. Возвращает анализ или список нарушений. */
 export function checkAnalysisOutput(output: ModelOutput, answers: readonly AnswerRef[], recover = false): { analysis?: Analysis; issues: string[] } {
   if (output.raw === undefined) return { issues: ['Ответ не является корректным JSON'] };
   const parsed = AnalysisSchema.safeParse(output.raw);
   if (!parsed.success) return { issues: zodIssues(parsed.error) };
+  const clean = pruneRepeatedFacts(parsed.data, answers);
   if (!recover) {
-    const relations = validateAnalysisRelations(parsed.data, answers);
+    const relations = validateAnalysisRelations(clean, answers);
     return relations.length > 0
       ? { issues: relations.map((issue) => `${issue.path}: ${issue.message}`) }
-      : { analysis: parsed.data, issues: [] };
+      : { analysis: clean, issues: [] };
   }
   const active = answers.filter((answer) => answer.active);
-  const originalIds = new Set(parsed.data.facts.map((fact) => fact.id));
+  const originalIds = new Set(clean.facts.map((fact) => fact.id));
   const byId = new Map(active.map((answer) => [answer.id, answer]));
-  let facts = parsed.data.facts.flatMap((fact) => {
+  let facts = clean.facts.flatMap((fact) => {
     const evidence = fact.evidence.flatMap((source) => {
       if (!checkEvidence(source, byId)) return [source];
       const matching = active.filter((answer) =>
@@ -81,7 +130,7 @@ export function checkAnalysisOutput(output: ModelOutput, answers: readonly Answe
     facts = facts.filter((fact) => fact.dependsOn.every((id) => ids.has(id)));
     ids = new Set(facts.map((fact) => fact.id));
   }
-  const safeUnits = parsed.data.units.map((unit) => {
+  const safeUnits = clean.units.map((unit) => {
     const factIds = unit.factIds.filter((id) => ids.has(id) || !originalIds.has(id));
     return factIds.length === 0 && (unit.state === 'known' || unit.state === 'not_required')
       ? { ...unit, factIds, state: 'missing' as const }
@@ -91,9 +140,9 @@ export function checkAnalysisOutput(output: ModelOutput, answers: readonly Answe
   // Удаляем только повторную ссылку; новых сведений не добавляем.
   const task1 = new Set(safeUnits.find((unit) => unit.id === 'q1.task1')?.factIds ?? []);
   const normalized: Analysis = {
-    ...parsed.data,
+    ...clean,
     facts,
-    conflicts: parsed.data.conflicts.flatMap((conflict) => {
+    conflicts: clean.conflicts.flatMap((conflict) => {
       const factIds = conflict.factIds.filter((id) => ids.has(id) || !originalIds.has(id));
       return factIds.length > 0 ? [{ ...conflict, factIds }] : [];
     }),
