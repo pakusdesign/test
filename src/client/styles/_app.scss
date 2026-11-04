@@ -258,12 +258,6 @@ body {
   }
 }
 
-.question-panel__intro {
-  @include type.type-style('heading-05');
-  color: var(--app-text-primary);
-  margin-bottom: 8px;
-}
-
 .question-panel__title {
   @include type.type-style('heading-04');
   color: var(--app-text-primary);
