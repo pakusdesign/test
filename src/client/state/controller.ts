@@ -438,6 +438,9 @@ export function createController(store: Store, deps: ControllerDeps = {}): Actio
       set((s) => ({
         ...s,
         stage: 'composing',
+        composerText: activeAnswersFor(s, currentQuestionId(s)).length > 0
+          ? [...new Set(activeAnswersFor(s, currentQuestionId(s)).map((a) => a.text.trim()).filter(Boolean))].join('\n\n')
+          : s.composerText,
         target: target ?? (s.stage === 'review' ? s.target : { kind: 'primary' }),
         error: s.error?.op === 'record' || s.error?.op === 'input' ? null : s.error,
       }));
@@ -484,14 +487,19 @@ export function createController(store: Store, deps: ControllerDeps = {}): Actio
       }
       const target = s.target;
       const base = s.pendingAudio && s.pendingAudio.questionId === q ? releaseAudio(s) : s;
+      const existingAnswers = activeAnswersFor(base, q);
       const { state } = commitAnswer({ ...base, error: null }, {
         questionId: q,
         target,
         text,
         inputMethod: 'text',
         origin: s.composerOrigin,
+        answerId: existingAnswers[0]?.id,
       });
-      await analyze(q, state);
+      await analyze(q, existingAnswers.length > 1 ? {
+        ...state,
+        answers: state.answers.map((a) => a.questionId === q && a.id !== existingAnswers[0]?.id && a.active ? { ...a, active: false } : a),
+      } : state);
     },
 
     async startRecording(target) {
@@ -701,7 +709,11 @@ export function createController(store: Store, deps: ControllerDeps = {}): Actio
         origin: answer.origin,
         answerId,
       });
-      await analyze(answer.questionId, state);
+      const merged = {
+        ...state,
+        answers: state.answers.map((a) => a.questionId === answer.questionId && a.id !== answerId && a.active ? { ...a, active: false } : a),
+      };
+      await analyze(answer.questionId, merged);
     },
 
     async reanalyze() {
