@@ -113,9 +113,11 @@ export function SlowNotice() {
         title="Обработка занимает больше времени."
         subtitle="Можно подождать или отменить."
       />
-      <Button size="sm" kind="tertiary" onClick={() => actions.cancelRequest()}>
-        Отменить
-      </Button>
+      {s.screen !== 'question' ? (
+        <Button size="sm" kind="tertiary" onClick={() => actions.cancelRequest()}>
+          Отменить
+        </Button>
+      ) : null}
     </div>
   );
 }
