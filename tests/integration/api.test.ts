@@ -164,6 +164,26 @@ describe('ответы модели анализа (T16)', () => {
     expect(res.body.analysis.units.find((unit: { id: string }) => unit.id === 'q1.task1')).toMatchObject({ state: 'missing', factIds: [] });
   });
 
+  it('одна фраза о текущем проекте не становится планом и инструментом', async () => {
+    const { analyzer } = scriptedAnalyzer([async (_s, input) => {
+      const analysis = validFor(input);
+      const project = analysis.facts.find((fact) => fact.id === 'f3')!;
+      analysis.facts.push({ ...project, id: 'duplicate-plan', questionId: 'q3' });
+      analysis.facts.push({ ...project, id: 'duplicate-tool', questionId: 'q4', kind: 'tool' });
+      const plan = analysis.units.find((unit) => unit.id === 'q3.project')!;
+      plan.factIds = ['duplicate-plan'];
+      const tool = analysis.units.find((unit) => unit.id === 'q4.tools')!;
+      tool.factIds = ['duplicate-tool'];
+      return output(analysis);
+    }]);
+    const { app } = appWith({ analyzer });
+    const res = await request(app).post('/api/analyze').send({ requestId: rid(), snapshot: snapshot(fullAnswers) });
+    expect(res.status).toBe(200);
+    expect(res.body.analysis.facts.some((fact: { text: string; questionId: string }) => fact.text === 'Платёжный модуль магазина.' && fact.questionId !== 'q2')).toBe(false);
+    expect(res.body.analysis.units.find((unit: { id: string }) => unit.id === 'q3.project')).toMatchObject({ state: 'missing', factIds: [] });
+    expect(res.body.analysis.units.find((unit: { id: string }) => unit.id === 'q4.tools')).toMatchObject({ state: 'missing', factIds: [] });
+  });
+
   it('неверный JSON дважды → 422 INVALID_MODEL_OUTPUT, ровно один repair', async () => {
     const { analyzer, calls } = scriptedAnalyzer([async () => ({ raw: undefined, rawText: '{oops' })]);
     const { app, logs } = appWith({ analyzer });
