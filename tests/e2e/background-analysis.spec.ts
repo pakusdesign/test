@@ -68,3 +68,27 @@ test('готовый анализ не возвращает пользовате
   await page.getByRole('button', { name: 'Назад' }).click();
   await expect(page.getByTestId('fact')).toHaveCount(2);
 });
+
+test('обзор показывает работу над сохранёнными ответами и отступ у кнопки возврата', async ({ page }) => {
+  await open(page, 'full');
+  await page.route('**/api/analyze', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 15000));
+    await route.abort().catch(() => undefined);
+  });
+  await page.getByRole('button', { name: 'Ответить текстом' }).click();
+  await page.locator('#composer-text').fill(FULL.q1);
+  await page.getByRole('button', { name: 'Проверить ответ' }).click();
+  await page.getByRole('button', { name: 'Далее' }).click();
+  await page.getByRole('button', { name: 'Ответить текстом' }).click();
+  await page.locator('#composer-text').fill(FULL.q2);
+  await page.getByRole('button', { name: 'Проверить ответ' }).click();
+  await page.getByRole('button', { name: 'Далее' }).click();
+  await page.getByRole('button', { name: 'Пропустить вопрос' }).click();
+  await page.getByRole('button', { name: 'Пропустить и к обзору' }).click();
+  await expect(page.getByTestId('overview-q1')).toContainText('В работе · 50%');
+  await expect(page.getByTestId('overview-q2')).toContainText('В работе · 50%');
+  await expect(page.getByTestId('overview-q1')).not.toContainText('Подтверждённых сведений нет.');
+  const card = await page.getByTestId('overview-q4').boundingBox();
+  const button = await page.getByRole('button', { name: 'Вернуться к вопросу с пробелами' }).boundingBox();
+  expect(card && button && button.y - (card.y + card.height)).toBeGreaterThanOrEqual(16);
+});
