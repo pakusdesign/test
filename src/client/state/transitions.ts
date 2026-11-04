@@ -239,7 +239,7 @@ export function applyAnalysis(s: SessionState, response: AnalyzeResponse): Sessi
     request: null,
     slow: false,
     error: null,
-    stage: 'review',
+    stage: s.screen === 'question' ? stageForQuestion(s, currentQuestionId(s)) : s.stage,
     connection: { ...s.connection, serviceUnreachable: false, recovered: false },
   };
   if (q) {
@@ -260,7 +260,7 @@ export function failRequest(s: SessionState, requestId: string, error: ActionErr
     request: null,
     slow: false,
     error,
-    stage: s.request.returnStage,
+    stage: s.screen === 'question' ? stageForQuestion(s, currentQuestionId(s)) : s.stage,
     connection: networkFailure ? { ...s.connection, serviceUnreachable: true } : s.connection,
   };
 }
