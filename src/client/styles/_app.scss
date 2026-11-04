@@ -259,7 +259,7 @@ body {
 }
 
 .question-panel__intro {
-  @include type.type-style('heading-03');
+  @include type.type-style('heading-05');
   color: var(--app-text-primary);
   margin-bottom: 8px;
 }
