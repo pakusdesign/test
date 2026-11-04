@@ -33,7 +33,8 @@ test('T30 / N02 → N03 → N07 → N08: сеть пропала во время
   await expect(page.locator('[data-state-id="N03"]')).toContainText('Не удалось отправить запись');
   await expect(page.locator('[data-state-id="N03"]')).toContainText('Она остаётся в этой вкладке');
   await expect(page.getByTestId('recorded-panel').locator('audio')).toHaveAttribute('src', /^blob:/);
-  await expect(page.getByTestId('connection-banner')).toContainText('Нет связи с сервисом');
+  // Ошибка записи уже показана рядом с ответом: общий баннер не дублирует её.
+  await expect(page.getByTestId('connection-banner')).toHaveCount(0);
   await expectPercent(page, 0);
 
   // N07: восстановление — только подсказка, автоматического запроса нет.
@@ -174,7 +175,7 @@ test('S15 / N09: обработка дольше 10 секунд — сообщ�
   await page.clock.fastForward(10_500);
   const slow = page.locator('[data-state-id="S15"]');
   await expect(slow).toContainText('Обработка занимает больше времени');
-  await slow.getByRole('button', { name: 'Отменить' }).click();
+  await page.getByRole('button', { name: 'Отменить обработку' }).click();
   await expect(slow).toHaveCount(0);
   await expect(page.getByTestId('answer-card').locator('textarea')).toHaveValue(FULL.q1);
 });

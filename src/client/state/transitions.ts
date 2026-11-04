@@ -260,7 +260,9 @@ export function failRequest(s: SessionState, requestId: string, error: ActionErr
     request: null,
     slow: false,
     error,
-    stage: s.screen === 'question' ? stageForQuestion(s, currentQuestionId(s)) : s.stage,
+    stage: s.request.op === 'analyze'
+      ? (s.screen === 'question' ? stageForQuestion(s, currentQuestionId(s)) : s.stage)
+      : s.request.returnStage,
     connection: networkFailure ? { ...s.connection, serviceUnreachable: true } : s.connection,
   };
 }

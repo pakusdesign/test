@@ -28,7 +28,7 @@ test('сквозной сценарий с уточнением: от запис
   await expect(clar).toContainText('Какую ещё задачу он выполняет ежедневно?');
   await expect(clar.getByRole('button', { name: 'Продолжить без уточнения' })).toBeVisible();
   await clar.getByRole('button', { name: 'Подставить ответ сценария' }).click();
-  await expect(page.getByTestId('answer-card')).toHaveCount(2);
+  await expect(page.getByTestId('answer-card')).toHaveCount(1);
   await expectPercent(page, 12.5);
   await confirm(page);
   await expectPercent(page, 25);

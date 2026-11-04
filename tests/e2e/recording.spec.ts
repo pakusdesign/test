@@ -39,7 +39,7 @@ test('S10: ожидание разрешения — ленты записи н�
   // Акцент записи включается только после фактического старта MediaRecorder.
   await expect(page.locator('.vpr').first()).toHaveAttribute('data-recording-zone', '');
   await page.getByRole('button', { name: 'Отмена' }).click();
-  await expect(page.locator('[data-state-id="S02"]')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Записать ответ' })).toBeVisible();
 });
 
 test('запись: лента и волны только в четверти вопроса во время записи; процент не растёт', async ({ page }) => {
@@ -75,7 +75,7 @@ test('запись сохраняется локально: прослушива
   await expect(panel.locator('audio')).toHaveAttribute('src', /^blob:/);
   await expect(panel).toContainText('не отправлялась на сервер');
   await panel.getByRole('button', { name: 'Удалить запись' }).click();
-  await expect(page.locator('[data-state-id="S02"]')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Записать ответ' })).toBeVisible();
 });
 
 test('T03: лимит 2 минуты останавливает запись без потери накопленного аудио', async ({ page }) => {

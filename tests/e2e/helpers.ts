@@ -12,7 +12,7 @@ export async function open(page: Page, scenario = 'guided') {
 }
 
 export function ring(page: Page) {
-  return page.getByRole('progressbar', { name: 'Полнота требований к вакансии' }).first();
+  return page.getByRole('progressbar', { name: 'Прогресс заполнения требований к вакансии' }).first();
 }
 
 export async function expectPercent(page: Page, value: number) {

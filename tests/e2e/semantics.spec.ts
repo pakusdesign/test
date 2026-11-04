@@ -77,7 +77,7 @@ test('T07: не больше двух автоматических уточне�
 test('T08: «не знаю» не даёт прогресс; «специальные программы и знания не нужны» закрывает q4', async ({ page }) => {
   await open(page, 'unknown');
   await submitText(page, 'Не знаю.');
-  await expect(page.getByText('Указано «не знаю»').first()).toBeVisible();
+  await expect(page.getByText('Вы указали, что сведений пока нет.')).toBeVisible();
   await expectPercent(page, 0);
   await page.locator('.question-nav__step', { hasText: '4' }).click();
   await answerWithText(page, 'Специальные программы и знания не нужны.');

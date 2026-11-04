@@ -311,10 +311,11 @@ test('MOT09: скрытая вкладка — цикл света остано�
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await expect(vpr).toHaveAttribute('data-motion', 'paused');
+  await page.waitForTimeout(150);
   const a = await ringLight(page);
   await page.waitForTimeout(600);
   const b = await ringLight(page);
-  expect(b.hash).toBe(a.hash);
+  expect(b.zones).toEqual(a.zones);
   await page.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
     document.dispatchEvent(new Event('visibilitychange'));

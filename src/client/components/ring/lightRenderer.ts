@@ -85,6 +85,10 @@ class Tween {
     this.to = target;
     this.duration = 0;
   }
+
+  freeze(now: number): void {
+    this.snap(this.value(now));
+  }
 }
 
 export interface LightRingState {
@@ -207,6 +211,8 @@ export class LightRingRenderer {
     } else {
       if (this.raf) cancelAnimationFrame(this.raf);
       this.raf = 0;
+      const now = performance.now();
+      for (const tween of [...this.band, ...this.warmth, ...this.steady, this.dim]) tween.freeze(now);
       this.redrawIfIdle();
     }
   }

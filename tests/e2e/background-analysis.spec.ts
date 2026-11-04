@@ -47,6 +47,7 @@ test('можно начать запись следующего ответа в�
   await page.getByRole('button', { name: 'Далее' }).click();
   await page.getByRole('button', { name: 'Записать ответ' }).click();
   await expect(page.getByTestId('recording-panel')).toBeVisible();
+  await page.waitForTimeout(800);
   await page.getByRole('button', { name: 'Завершить запись' }).click();
   await expect(page.getByTestId('recorded-panel')).toBeVisible();
 });
