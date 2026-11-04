@@ -320,7 +320,7 @@ function ReviewPanel({ q }: { q: QuestionId }) {
   const s = useSession();
   const actions = useActions();
   const answers = activeAnswersFor(s, q);
-  const inactive = s.answers.filter((a) => a.questionId === q && !a.active);
+  const combinedText = [...new Set(answers.map((a) => a.text.trim()).filter(Boolean))].join('\n\n');
   const fresh = isAnalysisFresh(s);
   const dirty = hasDirtyDrafts(s, q);
   const busy = isBusy(s);
@@ -349,12 +349,7 @@ function ReviewPanel({ q }: { q: QuestionId }) {
   return (
     <div className="review" data-testid="review">
       <div className="review__answers" ref={firstEditorRef}>
-        {answers.map((a) => (
-          <AnswerEditor key={a.id} answer={a} disabled={busy} />
-        ))}
-        {inactive.length > 0 ? (
-          <p className="review__inactive">Неактуальных ответов: {inactive.length}. Они не участвуют в анализе.</p>
-        ) : null}
+        {answers[0] && s.stage !== 'composing' ? <AnswerEditor answer={answers[0]} combinedText={combinedText} mixed={new Set(answers.map((a) => a.inputMethod)).size > 1} disabled={busy} /> : null}
       </div>
 
       {!fresh && !s.request && !s.error ? (
@@ -416,18 +411,18 @@ function OriginTag({ answer }: { answer: Answer }) {
   );
 }
 
-function AnswerEditor({ answer, disabled }: { answer: Answer; disabled: boolean }) {
+function AnswerEditor({ answer, combinedText, mixed, disabled }: { answer: Answer; combinedText: string; mixed: boolean; disabled: boolean }) {
   const s = useSession();
   const actions = useActions();
   const draft = s.drafts[answer.id];
-  const value = draft ?? answer.text;
-  const changed = draft !== undefined && draft !== answer.text;
+  const value = draft ?? combinedText;
+  const changed = draft !== undefined && draft !== combinedText;
   const tooLong = value.length > LIMITS.maxAnswerChars;
   return (
     <div className="answer-card" data-testid="answer-card" data-answer-kind={answer.kind}>
       <div className="answer-card__meta">
         <span className="answer-card__label">{answerLabel(answer)}</span>
-        <OriginTag answer={answer} />
+        {mixed ? <Tag type="cool-gray" size="sm">Голос и текст</Tag> : <OriginTag answer={answer} />}
         {answer.revision > 1 ? <span className="answer-card__rev">Версия {answer.revision}</span> : null}
       </div>
       <TextArea
