@@ -11,6 +11,7 @@ export function ConnectionBanner() {
   const actions = useActions();
   const { browserOnline, serviceUnreachable, recovered } = s.connection;
   if (s.stage === 'recording' && s.screen === 'question') return null;
+  if (s.error && (!browserOnline || serviceUnreachable)) return null;
 
   if (!browserOnline || serviceUnreachable) {
     return (
