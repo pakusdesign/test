@@ -61,7 +61,7 @@ export function OverviewScreen() {
               ))}
             </div>
             {statuses[QUESTION_IDS[firstEmpty]!] !== 'complete' ? (
-              <Button kind="tertiary" size="md" renderIcon={Edit} onClick={() => actions.goToQuestion(firstEmpty)}>
+              <Button className="overview-return" kind="tertiary" size="md" renderIcon={Edit} onClick={() => actions.goToQuestion(firstEmpty)}>
                 Вернуться к вопросу с пробелами
               </Button>
             ) : null}
@@ -138,21 +138,35 @@ function QuestionCard({ q, status, answered, onEdit, units, evals }: {
   });
   const answersById = new Map(s.answers.map((a) => [a.id, a]));
   const missing = units.filter((u) => !u.valid);
+  const savedAnswer = s.answers.some((answer) => answer.questionId === q && answer.active);
+  const transcribing = s.request?.op === 'transcribe' && s.request.questionId === q;
+  const awaitingAnalysis = savedAnswer && s.analysisRevision !== s.sessionRevision && answered !== 'confirmed';
+  const inWork = Boolean(transcribing || (awaitingAnalysis && s.request?.op === 'analyze'));
+  const workPercent = transcribing ? 25 : 50;
+  const needsAnalysis = awaitingAnalysis && !inWork;
   return (
     <article className="overview-card" data-testid={`overview-${q}`} aria-labelledby={`ov-${q}`}>
       <header className="overview-card__head">
         <h2 id={`ov-${q}`} className="overview-card__title">
           {def.index + 1}. {def.shortTitle}
         </h2>
-        <Tag type={s.request?.op === 'analyze' && s.request.questionId === q ? 'blue' : STATUS_TAG[status]} size="sm">
-          {s.request?.op === 'analyze' && s.request.questionId === q ? 'Анализируется' : STATUS_TEXT[status]}
+        <Tag type={inWork ? 'blue' : needsAnalysis ? 'warm-gray' : STATUS_TAG[status]} size="sm">
+          {inWork ? `В работе · ${workPercent}%` : needsAnalysis ? 'Нужна проверка' : STATUS_TEXT[status]}
         </Tag>
-        <Tag type={answered ? 'cool-gray' : 'outline'} size="sm">
-          {answered === 'confirmed' ? 'Проверен' : answered === 'skipped' ? 'Пропущен' : 'Не проверен'}
-        </Tag>
+        {!inWork && !needsAnalysis ? (
+          <Tag type={answered ? 'cool-gray' : 'outline'} size="sm">
+            {answered === 'confirmed' ? 'Проверен' : answered === 'skipped' ? 'Пропущен' : 'Не проверен'}
+          </Tag>
+        ) : null}
       </header>
       <p className="overview-card__question">{def.text}</p>
-      {confirmed.length > 0 ? (
+      {inWork ? (
+        <p className="overview-card__empty" role="status">
+          {transcribing ? 'Запись получена, речь распознаётся. 25% означает завершение записи.' : 'Текст ответа сохранён, идёт анализ. 50% означает завершение ввода и распознавания.'}
+        </p>
+      ) : needsAnalysis ? (
+        <p className="overview-card__empty">Ответ сохранён. Проверка не завершена. Откройте вопрос и запустите её снова.</p>
+      ) : confirmed.length > 0 ? (
         <Accordion size="md" className="overview-card__facts">
           {confirmed.map((f) => (
             <AccordionItem key={f.id} title={f.text}>
@@ -177,7 +191,7 @@ function QuestionCard({ q, status, answered, onEdit, units, evals }: {
       ) : (
         <p className="overview-card__empty">Подтверждённых сведений нет.</p>
       )}
-      {missing.length > 0 ? (
+      {!inWork && !needsAnalysis && missing.length > 0 ? (
         <ul className="overview-card__missing">
           {missing.map((u) => (
             <li key={u.id}>
@@ -188,7 +202,7 @@ function QuestionCard({ q, status, answered, onEdit, units, evals }: {
       ) : null}
       {needsReview ? <p className="overview-card__review">Ответ изменился или связан с изменённым ответом. Требуется проверка.</p> : null}
       <Button kind="tertiary" size="md" renderIcon={Edit} onClick={onEdit}>
-        Исправить
+        {inWork || needsAnalysis ? 'Открыть вопрос' : 'Исправить'}
       </Button>
     </article>
   );
