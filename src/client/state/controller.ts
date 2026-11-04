@@ -140,6 +140,13 @@ export function createController(store: Store, deps: ControllerDeps = {}): Actio
 
   const fallbackStage = (s: SessionState) => (s.pendingAudio ? 'recorded' : stageForQuestion(s, currentQuestionId(s)));
 
+  const stopBackgroundAnalysis = (s: SessionState): SessionState => {
+    if (s.request?.op !== 'analyze') return s;
+    requestAbort?.abort();
+    finishRequest(s.request.requestId);
+    return { ...s, request: null, slow: false };
+  };
+
   const releaseAudio = (s: SessionState): SessionState => {
     if (s.pendingAudio) URL.revokeObjectURL(s.pendingAudio.url);
     return { ...s, pendingAudio: null };
@@ -395,15 +402,15 @@ export function createController(store: Store, deps: ControllerDeps = {}): Actio
 
     goToQuestion(index) {
       const s = get();
-      if (s.request || s.stage === 'recording' || s.stage === 'requesting_permission') return;
+      if ((s.request && s.request.op !== 'analyze') || s.stage === 'recording' || s.stage === 'requesting_permission') return;
       set(goToQuestion(releaseAudio(s), index));
     },
 
     next() {
       const s = get();
-      if (s.request || s.stage === 'recording') return;
+      if ((s.request && s.request.op !== 'analyze') || s.stage === 'recording') return;
       const q = currentQuestionId(s);
-      let next = releaseAudio(s.answered[q] ? s : skipQuestion(s, q));
+      let next = releaseAudio(s.answered[q] || activeAnswersFor(s, q).length > 0 ? s : skipQuestion(s, q));
       next = { ...next, error: null };
       if (s.questionIndex >= QUESTION_IDS.length - 1) set({ ...next, screen: 'overview', progressNote: null });
       else set(goToQuestion(next, s.questionIndex + 1));
@@ -411,7 +418,7 @@ export function createController(store: Store, deps: ControllerDeps = {}): Actio
 
     back() {
       const s = get();
-      if (s.request || s.stage === 'recording') return;
+      if ((s.request && s.request.op !== 'analyze') || s.stage === 'recording') return;
       if (s.screen === 'result') return set({ ...s, screen: 'overview', error: null });
       if (s.screen === 'overview') return set(goToQuestion({ ...s, error: null }, QUESTION_IDS.length - 1));
       if (s.questionIndex === 0) return set({ ...releaseAudio(s), screen: 'start', error: null });
@@ -426,7 +433,7 @@ export function createController(store: Store, deps: ControllerDeps = {}): Actio
 
     openOverview() {
       const s = get();
-      if (s.request) return;
+      if (s.request && s.request.op !== 'analyze') return;
       set({ ...releaseAudio(s), screen: 'overview', error: null, progressNote: null });
     },
 
@@ -436,7 +443,7 @@ export function createController(store: Store, deps: ControllerDeps = {}): Actio
 
     openComposer(target) {
       set((s) => ({
-        ...s,
+        ...stopBackgroundAnalysis(s),
         stage: 'composing',
         composerText: activeAnswersFor(s, currentQuestionId(s)).length > 0
           ? [...new Set(activeAnswersFor(s, currentQuestionId(s)).map((a) => a.text.trim()).filter(Boolean))].join('\n\n')
@@ -504,10 +511,10 @@ export function createController(store: Store, deps: ControllerDeps = {}): Actio
 
     async startRecording(target) {
       const s = get();
-      if (s.request || s.stage === 'recording' || s.stage === 'requesting_permission') return;
+      if ((s.request && s.request.op !== 'analyze') || s.stage === 'recording' || s.stage === 'requesting_permission') return;
       const q = currentQuestionId(s);
       const useTarget = target ?? (s.stage === 'review' ? s.target : { kind: 'primary' as const });
-      const released = releaseAudio(s);
+      const released = releaseAudio(stopBackgroundAnalysis(s));
       recordingContext = { answerId: newId('ans'), questionId: q, target: useTarget };
       set({ ...released, stage: 'requesting_permission', target: useTarget, error: null });
       let rec: ActiveRecording;
