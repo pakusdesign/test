@@ -14,11 +14,11 @@ describe('local language model', () => {
     expect(out.raw).toEqual(answer);
   });
 
-  it('rejects invented facts even when JSON is valid', async () => {
+  it('passes parsed JSON to server validation even when the fact paraphrases its quote', async () => {
     const answer = { facts: [{ text: 'Назовите задачу сотрудника', evidence: [{ quote: 'Сотрудник проверяет счета.' }] }] };
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ message: { content: JSON.stringify(answer) } }), { status: 200 })));
     const out = await new OllamaClient('test-model').structured('system', [{ role: 'user', content: 'answer' }], {}, new AbortController().signal);
-    expect(out.raw).toBeUndefined();
+    expect(out.raw).toEqual(answer);
   });
 
   it('uses local model for analysis and a labelled template for generation', () => {
