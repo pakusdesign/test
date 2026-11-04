@@ -1,6 +1,5 @@
 import { Button, InlineNotification, Select, SelectItem } from '@carbon/react';
 import { ArrowRight } from '@carbon/icons-react';
-import { INTRO_TEXT } from '../../shared/constants';
 import { GlassPanel } from '../components/common';
 import { configOf, scenarioOf } from '../components/demo';
 import { SessionRing } from '../components/SessionRing';
@@ -23,10 +22,9 @@ export function StartScreen() {
       </div>
       <div className="start-panel__body" data-state-id="S01">
         <h1 id="start-title" className="start-panel__title" tabIndex={-1}>
-          Создайте описание вакансии
+          Расскажите о вакансии
         </h1>
-        <p className="start-panel__lead">Ответьте на четыре вопроса голосом или текстом.</p>
-        <p className="start-panel__intro">{INTRO_TEXT}.</p>
+        <p className="start-panel__lead">Сервис сам составит полное описание вакансии благодаря всего 4 вашим ответам на вопросы. Вы можете ответить голосом или текстом.</p>
         <ul className="start-panel__facts">
           <li>Система выделит факты и покажет, чего не хватает.</li>
           <li>Вы проверите сведения. В описание попадут только подтверждённые факты.</li>
