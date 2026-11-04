@@ -137,7 +137,7 @@ export type AnalyzeRequest = z.infer<typeof AnalyzeRequestSchema>;
 export const QuestionStatusSchema = z.enum(['empty', 'partial', 'complete']);
 export type QuestionStatus = z.infer<typeof QuestionStatusSchema>;
 
-export const ResultSourceSchema = z.enum(['fixture', 'provider']);
+export const ResultSourceSchema = z.enum(['fixture', 'provider', 'local_template']);
 export type ResultSource = z.infer<typeof ResultSourceSchema>;
 
 export const AnalyzeResponseSchema = z.strictObject({
@@ -212,6 +212,7 @@ export const ConfigResponseSchema = z.strictObject({
     .strictObject({
       sttProvider: z.enum(['whisper', 'deepgram']).optional(),
       sttConfigured: z.boolean(),
+      llmProvider: z.enum(['ollama', 'anthropic']).optional(),
       llmConfigured: z.boolean(),
       sttModel: z.string(),
       sttLanguage: z.string(),

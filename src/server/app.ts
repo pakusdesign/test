@@ -125,6 +125,7 @@ export function createApp({ config, providers, logger = silentLogger }: AppDeps)
         ? {
             live: {
               ...readiness,
+              llmProvider: config.llmProvider,
               sttProvider: config.sttProvider,
               sttModel: config.sttModel,
               sttLanguage: config.sttLanguage,

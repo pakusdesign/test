@@ -4,7 +4,7 @@
  */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { FULL, answerWithText, confirm, expectPercent, open } from './helpers';
+import { FULL, answerWithText, confirm, expectPercent, open, ringLight } from './helpers';
 
 async function tabTo(page: Page, name: RegExp | string, max = 40) {
   for (let i = 0; i < max; i += 1) {
@@ -97,14 +97,19 @@ test('T18 / T37: reduced motion — круг без переходов, вопр
   await open(page, 'full');
   const vpr = page.locator('.vpr').first();
   await expect(vpr).toHaveAttribute('data-reduced-motion', 'true');
-  const durations = await page.locator('.vpr__mask-arc').first().evaluate((el) => getComputedStyle(el).transitionDuration);
+  const durations = await page.locator('.vpr__unit-arc').first().evaluate((el) => getComputedStyle(el).transitionDuration);
   expect(durations).toBe('0s');
+  // Перетекание, вибрация, волны и пульсация отключены: световой слой — один статичный кадр.
+  await expect(vpr).toHaveAttribute('data-motion', 'static');
+  const still = await ringLight(page);
+  await page.waitForTimeout(600);
+  expect((await ringLight(page)).hash).toBe(still.hash);
   const anim = await page.locator('.question-panel__head').evaluate((el) => getComputedStyle(el).animationName);
   expect(anim).toBe('none');
   await answerWithText(page, FULL.q1);
   await confirm(page);
-  // Обновление штрихов — сразу, без анимаций.
-  const running = await page.locator('.vpr__mask-arc').first().evaluate((el) => el.getAnimations().length);
+  // Обновление дуг — сразу, без анимаций.
+  const running = await page.locator('.vpr__unit-arc').first().evaluate((el) => el.getAnimations().length);
   expect(running).toBe(0);
   await expectPercent(page, 25);
 });

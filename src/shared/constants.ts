@@ -177,7 +177,7 @@ export const LIMITS = {
   maxClarificationsPerQuestion: 2,
   slowNoticeMs: 10000,
   loadingIndicatorDelayMs: 150,
-  clientRequestTimeoutMs: 50000,
+  clientRequestTimeoutMs: 125000,
 } as const;
 
 export type Limits = typeof LIMITS;

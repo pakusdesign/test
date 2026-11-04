@@ -14,6 +14,8 @@ export interface ServerConfig {
   whisper: { binary: string; ffmpeg: string; modelPath: string; language: string };
   sttModel: string;
   sttLanguage: string;
+  llmProvider: 'ollama' | 'anthropic';
+  ollamaUrl: string;
   llmModel: string | null;
   llmMaxTokens: number;
   rateLimitPerMinute: number;
@@ -47,6 +49,8 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env, rootDir =
   }
   const sttProvider = env.STT_PROVIDER ?? 'whisper';
   if (sttProvider !== 'whisper' && sttProvider !== 'deepgram') throw new Error('STT_PROVIDER должен быть whisper или deepgram');
+  const llmProvider = env.LLM_PROVIDER ?? 'ollama';
+  if (llmProvider !== 'ollama' && llmProvider !== 'anthropic') throw new Error('LLM_PROVIDER должен быть ollama или anthropic');
   const clientDir = path.join(rootDir, 'dist', 'client');
   return {
     mode: rawMode,
@@ -58,7 +62,9 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env, rootDir =
     whisper: { binary: env.WHISPER_BINARY ?? '', ffmpeg: env.FFMPEG_BINARY ?? '', modelPath: env.WHISPER_MODEL_PATH ?? '', language: nonEmpty(env.STT_LANGUAGE) ?? 'ru' },
     sttModel: sttProvider === 'whisper' ? 'whisper.cpp/' + path.basename(env.WHISPER_MODEL_PATH || 'not-configured') : nonEmpty(env.STT_MODEL) ?? 'nova-3',
     sttLanguage: nonEmpty(env.STT_LANGUAGE) ?? 'ru',
-    llmModel: nonEmpty(env.LLM_MODEL),
+    llmProvider,
+    ollamaUrl: nonEmpty(env.OLLAMA_URL) ?? 'http://127.0.0.1:11434/api/chat',
+    llmModel: nonEmpty(env.LLM_MODEL) ?? (llmProvider === 'ollama' ? 'qwen3:4b-instruct' : null),
     llmMaxTokens: intOr(env.LLM_MAX_TOKENS, 4096, 512, 32000),
     rateLimitPerMinute: intOr(env.RATE_LIMIT_PER_MINUTE, 20, 1, 10000),
     providerTimeoutMs: intOr(env.PROVIDER_TIMEOUT_MS, LIMITS.providerTimeoutMs, 1000, 120000),

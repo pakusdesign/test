@@ -2,6 +2,7 @@ import type { ServerConfig } from '../config';
 import { AppError } from '../errors';
 import { loadPrompts } from '../prompts';
 import { AnthropicAnalyzer, AnthropicClient, AnthropicGenerator } from './anthropic';
+import { OllamaClient } from './ollama';
 import { WhisperTranscriber, whisperConfigured } from './whisper';
 import { DeepgramTranscriber } from './deepgram';
 import { FixtureAnalyzer, FixtureTranscriber, TemplateGenerator } from './fixture';
@@ -32,7 +33,7 @@ class UnconfiguredProvider implements Transcriber, Analyzer, Generator {
 export function liveReadiness(config: ServerConfig): { sttConfigured: boolean; llmConfigured: boolean } {
   return {
     sttConfigured: config.sttProvider === 'whisper' ? whisperConfigured(config.whisper) : Boolean(config.deepgramApiKey),
-    llmConfigured: Boolean(config.anthropicApiKey && config.llmModel),
+    llmConfigured: Boolean(config.llmModel && (config.llmProvider === 'ollama' || config.anthropicApiKey)),
   };
 }
 
@@ -45,15 +46,18 @@ export function createProviders(config: ServerConfig, fetchImpl?: typeof fetch):
     : config.deepgramApiKey
     ? new DeepgramTranscriber({ apiKey: config.deepgramApiKey, model: config.sttModel, language: config.sttLanguage, fetchImpl })
     : new UnconfiguredProvider(config.sttModel, 'DEEPGRAM_API_KEY');
-  if (!config.anthropicApiKey || !config.llmModel) {
-    const missing = [!config.anthropicApiKey && 'ANTHROPIC_API_KEY', !config.llmModel && 'LLM_MODEL'].filter(Boolean).join(', ');
+  if (!config.llmModel || (config.llmProvider === 'anthropic' && !config.anthropicApiKey)) {
+    const missing = [config.llmProvider === 'anthropic' && !config.anthropicApiKey && 'ANTHROPIC_API_KEY', !config.llmModel && 'LLM_MODEL'].filter(Boolean).join(', ');
     const stub = new UnconfiguredProvider(config.llmModel, missing);
     return { transcriber, analyzer: stub, generator: stub };
   }
   const prompts = loadPrompts(config.rootDir);
-  const client = new AnthropicClient({
-    apiKey: config.anthropicApiKey,
-    model: config.llmModel,
+  const llmModel = config.llmModel;
+  const client = config.llmProvider === 'ollama'
+    ? new OllamaClient(llmModel, config.ollamaUrl)
+    : new AnthropicClient({
+    apiKey: config.anthropicApiKey!,
+    model: llmModel,
     maxTokens: config.llmMaxTokens,
     prompts,
     fetchImpl,
@@ -61,6 +65,13 @@ export function createProviders(config: ServerConfig, fetchImpl?: typeof fetch):
   return {
     transcriber,
     analyzer: new AnthropicAnalyzer(client, prompts),
-    generator: new AnthropicGenerator(client, prompts),
+    generator: config.llmProvider === 'ollama'
+      ? {
+          source: 'local_template' as const,
+          model: null,
+          promptVersion: 'local-template-1.0',
+          generate: (input) => new TemplateGenerator().generate(input),
+        }
+      : new AnthropicGenerator(client, prompts),
   };
 }

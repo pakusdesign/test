@@ -4,7 +4,7 @@
  * сигнал — синтетический тон. Реальный русский голос и Safari — ручная проверка.
  */
 import { expect, test } from '@playwright/test';
-import { expectPercent, open } from './helpers';
+import { expectPercent, open, ringLight } from './helpers';
 
 test('T02 / S11: отказ в доступе к микрофону — понятная ошибка и текстовый путь', async ({ page }) => {
   await page.addInitScript(() => {
@@ -29,31 +29,39 @@ test('S12: микрофон не найден', async ({ page }) => {
   await expect(page.locator('[data-state-id="S12"]')).toContainText('Микрофон не найден');
 });
 
-test('S10: ожидание разрешения — ореола нет, отмена возвращает к вопросу', async ({ page }) => {
+test('S10: ожидание разрешения — ленты записи нет, отмена возвращает к вопросу', async ({ page }) => {
   await page.addInitScript(() => {
     navigator.mediaDevices.getUserMedia = () => new Promise(() => undefined);
   });
   await open(page);
   await page.getByRole('button', { name: 'Записать ответ' }).click();
   await expect(page.locator('[data-state-id="S10"]')).toContainText('Разрешите доступ к микрофону в браузере');
-  await expect(page.locator('.vpr__halo-wrap').first()).toHaveAttribute('data-active', 'false');
+  // Акцент записи включается только после фактического старта MediaRecorder.
+  await expect(page.locator('.vpr').first()).toHaveAttribute('data-recording-zone', '');
   await page.getByRole('button', { name: 'Отмена' }).click();
   await expect(page.locator('[data-state-id="S02"]')).toBeVisible();
 });
 
-test('запись: ореол активен только во время записи и меняется от реального сигнала; процент не растёт', async ({ page }) => {
+test('запись: лента и волны только в четверти вопроса во время записи; процент не растёт', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Записать ответ' }).click();
   await expect(page.getByTestId('recording-panel')).toBeVisible();
-  await expect(page.locator('.vpr__halo-wrap').first()).toHaveAttribute('data-active', 'true');
-  // Сигнал фиктивного устройства меняет transform ореола (без React-перерисовки).
-  await expect
-    .poll(async () => page.locator('.vpr__halo').first().evaluate((el) => (el as SVGElement).style.transform), { timeout: 5000 })
-    .toMatch(/scale\(1\.0[0-3]\d*\)/);
-  await page.waitForTimeout(1500);
+  const vpr = page.locator('.vpr').first();
+  await expect(vpr).toHaveAttribute('data-recording-zone', 'q1');
+  await expect(page.locator('.vpr__stage').first()).toHaveText('Идёт запись · вопрос 1 из 4');
+  await page.waitForTimeout(500);
+  // Сигнал фиктивного устройства идёт в световой слой: лента q1 широкая и меняется во времени.
+  const a = await ringLight(page);
+  expect(a.zones[0]!.thickness).toBeGreaterThanOrEqual(9);
+  for (const i of [1, 2, 3]) expect(a.zones[i]!.thickness).toBeLessThan(6);
+  await page.waitForTimeout(400);
+  expect((await ringLight(page)).hash).not.toBe(a.hash);
+  await page.waitForTimeout(1000);
   await expectPercent(page, 0);
   await page.getByRole('button', { name: 'Отменить запись' }).click();
-  await expect(page.locator('.vpr__halo-wrap').first()).toHaveAttribute('data-active', 'false');
+  await expect(vpr).toHaveAttribute('data-recording-zone', '');
+  await page.waitForTimeout(450);
+  expect((await ringLight(page)).zones[0]!.thickness).toBeLessThan(6);
   const live = await page.evaluate(() => (window.__vbStreams ?? []).flatMap((s) => s.getTracks()).filter((t) => t.readyState === 'live').length);
   expect(live).toBe(0);
 });

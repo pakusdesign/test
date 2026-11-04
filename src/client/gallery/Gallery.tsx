@@ -21,7 +21,7 @@ import {
 } from '@carbon/react';
 import { Add, Microphone } from '@carbon/icons-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { UNIT_IDS, UNIT_LABELS } from '../../shared/constants';
+import { QUESTION_IDS, UNIT_IDS, UNIT_LABELS, type QuestionId } from '../../shared/constants';
 import { AppFrame, AppView } from '../AppView';
 import { EmptyState, GlassPanel, SectionBoundary } from '../components/common';
 import { VacancyProgressRing, type RingStage } from '../components/ring/VacancyProgressRing';
@@ -93,18 +93,35 @@ function PresetPage({ preset }: { preset: GalleryPreset }) {
   );
 }
 
-const RING_EXAMPLES: { title: string; units: UnitId8; stage?: RingStage; level?: number; processing?: boolean; note?: string; answered: number }[] = [
-  { title: '0%', units: [], answered: 0 },
+interface RingExample {
+  title: string;
+  units: UnitId8;
+  stage?: RingStage;
+  active?: QuestionId;
+  attention?: QuestionId[];
+  level?: number;
+  processing?: boolean;
+  status?: string;
+  detail?: string;
+  note?: string;
+  answered: number;
+}
+
+const RING_EXAMPLES: RingExample[] = [
+  { title: '0%', units: [], answered: 0, status: 'Ответьте на четыре вопроса' },
   { title: '12.5% → 13%', units: ['q1.task1'], answered: 1 },
   { title: '25%', units: ['q1.task1', 'q1.task2'], answered: 1 },
   { title: '50%', units: ['q1.task1', 'q1.task2', 'q2.project', 'q2.contribution'], answered: 2 },
   { title: 'Разреженное 50%: q2 и q4', units: ['q2.project', 'q2.contribution', 'q4.tools', 'q4.knowledge'], answered: 4 },
   { title: '75%: q3 пуст', units: ['q1.task1', 'q1.task2', 'q2.project', 'q2.contribution', 'q4.tools', 'q4.knowledge'], answered: 4 },
-  { title: '100%', units: [...UNIT_IDS], answered: 4 },
-  { title: 'Запись, уровень 0', units: ['q1.task1'], stage: 'recording', level: 0, answered: 1 },
-  { title: 'Запись, уровень 0.5', units: ['q1.task1'], stage: 'recording', level: 0.5, answered: 1 },
-  { title: 'Запись, уровень 1', units: ['q1.task1'], stage: 'recording', level: 1, answered: 1 },
-  { title: 'Обработка: InlineLoading', units: ['q1.task1', 'q1.task2'], stage: 'processing', processing: true, answered: 1 },
+  { title: '100%', units: [...UNIT_IDS], answered: 4, status: 'Данных по четырём вопросам достаточно' },
+  { title: 'Запись q2, тишина', units: ['q1.task1', 'q1.task2'], stage: 'recording', active: 'q2', level: 0, answered: 1, status: 'Идёт запись · вопрос 2 из 4' },
+  { title: 'Запись q2, голос', units: ['q1.task1', 'q1.task2'], stage: 'recording', active: 'q2', level: 0.8, answered: 1, status: 'Идёт запись · вопрос 2 из 4' },
+  { title: 'Уточнение q2', units: ['q1.task1', 'q1.task2', 'q2.project'], stage: 'clarification', active: 'q2', attention: ['q2'], answered: 2, status: 'Вопрос 2 · нужно уточнение', detail: 'За какой результат в этом проекте отвечает сотрудник?' },
+  { title: 'Запись q3 при уточнении q2', units: ['q1.task1', 'q1.task2', 'q2.project'], stage: 'recording', active: 'q3', attention: ['q2'], level: 0.8, answered: 2, status: 'Идёт запись · вопрос 3 из 4' },
+  { title: 'Запись уточнения q2', units: ['q1.task1', 'q1.task2', 'q2.project'], stage: 'recording', active: 'q2', attention: ['q2'], level: 0.8, answered: 2, status: 'Записываем уточнение' },
+  { title: 'Итог: три спокойных, q3 ждёт уточнения', units: ['q1.task1', 'q1.task2', 'q2.project', 'q2.contribution', 'q3.direction', 'q4.tools', 'q4.knowledge'], stage: 'review', attention: ['q3'], answered: 4 },
+  { title: 'Обработка: InlineLoading', units: ['q1.task1', 'q1.task2'], stage: 'processing', active: 'q2', processing: true, answered: 1 },
   { title: 'Снижение полноты', units: ['q2.project', 'q2.contribution', 'q4.tools', 'q4.knowledge'], note: 'Ответ изменён. Проверьте сведения ещё раз', answered: 3 },
 ];
 type UnitId8 = (typeof UNIT_IDS)[number][];
@@ -122,12 +139,15 @@ function RingStand({ reduced }: { reduced: boolean }) {
           <VacancyProgressRing
             validConfirmedUnits={vec(ex.units)}
             stage={ex.stage ?? 'review'}
-            activeQuestionId="q1"
+            activeQuestionId={ex.active ?? 'q1'}
             answeredCount={ex.answered}
             connectionState="online"
             reducedMotion={reduced}
+            attentionQuestionIds={ex.attention}
             audioLevel={ex.level}
             processing={ex.processing ? { key: 'gallery', label: 'Проверяем, хватает ли сведений' } : null}
+            statusText={ex.status}
+            statusDetail={ex.detail}
             note={ex.note}
             silent
           />
@@ -137,10 +157,12 @@ function RingStand({ reduced }: { reduced: boolean }) {
   );
 }
 
-/** Интерактивный стенд: переходы, прерывание цели, уровень голоса, reduced motion. */
+/** Интерактивный стенд: переходы, прерывание цели, запись по четвертям, уточнение, уровень голоса, reduced motion. */
 function RingPlayground({ reduced }: { reduced: boolean }) {
   const [units, setUnits] = useState<boolean[]>(() => UNIT_IDS.map(() => false));
   const [stage, setStage] = useState<RingStage>('review');
+  const [active, setActive] = useState<QuestionId>('q2');
+  const [attention, setAttention] = useState<QuestionId[]>([]);
   const [level, setLevel] = useState(0.5);
   const [processing, setProcessing] = useState(false);
   const sequence: UnitId8[] = [
@@ -153,18 +175,21 @@ function RingPlayground({ reduced }: { reduced: boolean }) {
   const run = (steps: UnitId8[], gap: number) => {
     steps.forEach((u, i) => window.setTimeout(() => setUnits(vec(u)), i * gap));
   };
+  const n = QUESTION_IDS.indexOf(active) + 1;
   return (
     <div className="gallery-playground" data-testid="ring-playground">
       <div className="gallery-playground__ring">
         <VacancyProgressRing
           validConfirmedUnits={units}
-          stage={stage}
-          activeQuestionId="q2"
+          stage={processing ? 'processing' : stage}
+          activeQuestionId={active}
           answeredCount={units.filter(Boolean).length > 0 ? 2 : 0}
           connectionState="online"
           reducedMotion={reduced}
+          attentionQuestionIds={attention}
           audioLevel={level}
           processing={processing ? { key: String(processing), label: 'Составляем описание вакансии' } : null}
+          statusText={stage === 'recording' ? `Идёт запись · вопрос ${n} из 4` : null}
         />
       </div>
       <div className="gallery-playground__controls">
@@ -180,6 +205,18 @@ function RingPlayground({ reduced }: { reduced: boolean }) {
             />
           ))}
         </fieldset>
+        <fieldset className="gallery-fieldset">
+          <legend>Нужно уточнение</legend>
+          {QUESTION_IDS.map((q) => (
+            <Checkbox
+              key={q}
+              id={`pg-attention-${q}`}
+              labelText={`Вопрос ${QUESTION_IDS.indexOf(q) + 1}`}
+              checked={attention.includes(q)}
+              onChange={(_, { checked }) => setAttention((prev) => (checked ? [...prev, q] : prev.filter((x) => x !== q)))}
+            />
+          ))}
+        </fieldset>
         <div className="answer-actions">
           <Button size="sm" kind="secondary" data-testid="pg-sequence" onClick={() => run(sequence, 700)}>
             0 → 12.5 → 25 → 50 → 100
@@ -191,9 +228,16 @@ function RingPlayground({ reduced }: { reduced: boolean }) {
             Сбросить
           </Button>
         </div>
+        <div className="answer-actions" role="group" aria-label="Четверть записи">
+          {QUESTION_IDS.map((q) => (
+            <Button key={q} size="sm" kind={active === q ? 'primary' : 'ghost'} data-testid={`pg-zone-${q}`} onClick={() => setActive(q)}>
+              Вопрос {QUESTION_IDS.indexOf(q) + 1}
+            </Button>
+          ))}
+        </div>
         <div className="answer-actions">
-          <Button size="sm" kind={stage === 'recording' ? 'primary' : 'tertiary'} renderIcon={Microphone} onClick={() => setStage(stage === 'recording' ? 'review' : 'recording')}>
-            {stage === 'recording' ? 'Остановить запись (ореол)' : 'Запись (ореол)'}
+          <Button size="sm" kind={stage === 'recording' ? 'primary' : 'tertiary'} renderIcon={Microphone} data-testid="pg-record" onClick={() => setStage(stage === 'recording' ? 'review' : 'recording')}>
+            {stage === 'recording' ? 'Остановить запись' : 'Запись (лента и волны)'}
           </Button>
           <Button size="sm" kind={processing ? 'primary' : 'tertiary'} onClick={() => setProcessing((p) => !p)}>
             {processing ? 'Завершить ожидание' : 'Ожидание (InlineLoading)'}
@@ -313,7 +357,7 @@ function GalleryIndex() {
           <RingStand reduced={reduced} />
         </GlassPanel>
         <GlassPanel className="gallery-panel">
-          <h2 className="side-panel__title">Круг: интерактивный стенд (MOT04, MOT05, MOT09)</h2>
+          <h2 className="side-panel__title">Круг: интерактивный стенд (MOT03–MOT06, MOT09)</h2>
           <RingPlayground reduced={reduced} />
         </GlassPanel>
         <GlassPanel className="gallery-panel">

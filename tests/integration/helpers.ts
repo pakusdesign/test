@@ -19,6 +19,8 @@ export function config(overrides: Partial<ServerConfig> = {}): ServerConfig {
     whisper: { binary: '', ffmpeg: '', modelPath: '', language: 'ru' },
     sttModel: 'nova-3',
     sttLanguage: 'ru',
+    llmProvider: 'anthropic',
+    ollamaUrl: 'http://127.0.0.1:11434/api/chat',
     llmModel: null,
     llmMaxTokens: 4096,
     rateLimitPerMinute: 1000,

@@ -34,9 +34,15 @@ const backgrounds: Record<string, RGB> = {
 const samples: { name: string; color: string; min: number }[] = [
   { name: 'Основной текст app-text-primary', color: '#161616', min: 4.5 },
   { name: 'Вторичный текст app-text-secondary', color: '#525252', min: 4.5 },
-  { name: 'Акцент / ссылки / заполненные штрихи app-accent', color: '#0F62FE', min: 4.5 },
-  { name: 'Пустые штрихи круга (border-strong-01)', color: '#8D8D8D', min: 3 },
-  { name: 'Активный сектор (icon-secondary)', color: '#525252', min: 3 },
+  { name: 'Акцент / ссылки app-accent', color: '#0F62FE', min: 4.5 },
+  // Световое кольцо 2.0: чёткие дуги полноты (UNIT_STOPS) и насыщенная кромка обода (COLD/WARM_PALETTES).
+  ...['#6040F0', '#5048F2', '#3156F6', '#1A60FF', '#0E86D0', '#08919F', '#1C7FE0', '#3D5FF0'].map((color) => ({
+    name: `Дуга полноты ${color}`,
+    color,
+    min: 3,
+  })),
+  ...['#6A4CF5', '#2F67FF', '#0E9AA8', '#2A86F2', '#E2441E'].map((color) => ({ name: `Кромка обода ${color}`, color, min: 3 })),
+  { name: 'Подпись уточнения (тёплый текст круга)', color: '#B83A17', min: 4.5 },
   { name: 'Знак 100% (support-success)', color: '#24A148', min: 3 },
   { name: 'Ошибка (text-error)', color: '#DA1E28', min: 4.5 },
 ];

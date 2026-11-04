@@ -1,0 +1,176 @@
+name: Offline release (Mac + Windows)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, for example offline-v1
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --title "Голосовой бриф вакансии — офлайн" --notes "Скачайте архив для своей системы и все три файла моделей. Для Windows также нужен ollama-runtime-windows-x64.zip. Инструкция внутри архива."
+
+  models:
+    needs: draft
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.23.0
+      - name: Download Ollama for model preparation
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq zstd
+          curl -fL --retry 3 -o "$RUNNER_TEMP/ollama.tar.zst" https://github.com/ollama/ollama/releases/download/v0.40.14/ollama-linux-amd64.tar.zst
+          mkdir -p "$RUNNER_TEMP/ollama"
+          tar --zstd -xf "$RUNNER_TEMP/ollama.tar.zst" -C "$RUNNER_TEMP/ollama"
+      - name: Download and split models
+        run: |
+          export OLLAMA_MODELS="$RUNNER_TEMP/ollama-models"
+          export OLLAMA_HOST=127.0.0.1:11434
+          "$RUNNER_TEMP/ollama/bin/ollama" serve > "$RUNNER_TEMP/ollama.log" 2>&1 &
+          sleep 5
+          "$RUNNER_TEMP/ollama/bin/ollama" pull qwen3:4b-instruct
+          curl -fL --retry 3 -o "$RUNNER_TEMP/ggml-small.bin" https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
+          export WHISPER_MODEL="$RUNNER_TEMP/ggml-small.bin"
+          export OUT_DIR="$RUNNER_TEMP/offline-models"
+          node scripts/offline/make-model-assets.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: offline-model-metadata
+          path: ${{ runner.temp }}/offline-models/offline-model.json
+          retention-days: 1
+      - name: Upload model files to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: gh release upload "$TAG" "$RUNNER_TEMP"/offline-models/model-assets/* --repo "$GITHUB_REPOSITORY" --clobber
+
+  macos:
+    needs: models
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.23.0
+      - uses: actions/download-artifact@v4
+        with:
+          name: offline-model-metadata
+          path: ${{ runner.temp }}/offline-models
+      - name: Build application
+        run: |
+          npm ci
+          npm run typecheck
+          npm run lint
+          npm run build
+          mkdir -p "$RUNNER_TEMP/prod"
+          cp package.json package-lock.json "$RUNNER_TEMP/prod/"
+          npm ci --omit=dev --prefix "$RUNNER_TEMP/prod"
+      - name: Build whisper.cpp for Apple Silicon
+        run: |
+          test "$(uname -m)" = arm64
+          git clone --depth 1 --branch v1.9.5 https://github.com/ggml-org/whisper.cpp.git "$RUNNER_TEMP/whisper.cpp"
+          cmake -S "$RUNNER_TEMP/whisper.cpp" -B "$RUNNER_TEMP/whisper-build" -DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=OFF
+          cmake --build "$RUNNER_TEMP/whisper-build" --config Release -j 3
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil, os
+          base=Path(os.environ['RUNNER_TEMP'])
+          target=base/'whisper-runtime'; target.mkdir()
+          shutil.copy2(base/'whisper-build/bin/whisper-cli', target/'whisper-cli')
+          for file in (base/'whisper-build').rglob('*.dylib'):
+              destination=target/file.name
+              if not destination.exists(): shutil.copy2(file.resolve(), destination)
+          PY
+      - name: Download runtimes and package
+        run: |
+          curl -fL --retry 3 -o "$RUNNER_TEMP/ollama.zip" https://github.com/ollama/ollama/releases/download/v0.40.14/Ollama-darwin.zip
+          mkdir -p "$RUNNER_TEMP/ollama-runtime"
+          unzip -q "$RUNNER_TEMP/ollama.zip" 'Ollama.app/Contents/Resources/*' -d "$RUNNER_TEMP/ollama-runtime"
+          npm install --no-save --prefix "$RUNNER_TEMP/ffmpeg-package" ffmpeg-static@5.2.0
+          export OUT_DIR="$RUNNER_TEMP/vacancy-brief-macos-arm64"
+          export PROD_MODULES="$RUNNER_TEMP/prod"
+          export WHISPER_DIR="$RUNNER_TEMP/whisper-runtime"
+          export FFMPEG_BINARY="$RUNNER_TEMP/ffmpeg-package/node_modules/ffmpeg-static/ffmpeg"
+          export NODE_BINARY="$(command -v node)"
+          export MODEL_META="$RUNNER_TEMP/offline-models/offline-model.json"
+          export OLLAMA_DIR="$RUNNER_TEMP/ollama-runtime/Ollama.app/Contents/Resources"
+          node scripts/offline/package-app.mjs
+          python3 scripts/offline/zip-package.py "$OUT_DIR" "$RUNNER_TEMP/vacancy-brief-macos-arm64.zip"
+      - name: Upload Mac app
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: gh release upload "$TAG" "$RUNNER_TEMP/vacancy-brief-macos-arm64.zip" --repo "$GITHUB_REPOSITORY" --clobber
+
+  windows:
+    needs: models
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.23.0
+      - uses: actions/download-artifact@v4
+        with:
+          name: offline-model-metadata
+          path: ${{ runner.temp }}/offline-models
+      - name: Build application
+        shell: pwsh
+        run: |
+          npm ci
+          npm run typecheck
+          npm run lint
+          npm run build
+          New-Item -ItemType Directory -Force "$env:RUNNER_TEMP/prod" | Out-Null
+          Copy-Item package.json, package-lock.json "$env:RUNNER_TEMP/prod/"
+          npm ci --omit=dev --prefix "$env:RUNNER_TEMP/prod"
+      - name: Download offline runtimes
+        shell: pwsh
+        run: |
+          curl.exe -fL --retry 3 -o "$env:RUNNER_TEMP/whisper.zip" https://github.com/ggml-org/whisper.cpp/releases/download/b5454/whisper-bin-x64.zip
+          Expand-Archive "$env:RUNNER_TEMP/whisper.zip" "$env:RUNNER_TEMP/whisper" -Force
+          npm install --no-save --prefix "$env:RUNNER_TEMP/ffmpeg-package" ffmpeg-static@5.2.0
+          curl.exe -fL --retry 3 -o "$env:RUNNER_TEMP/ollama-runtime-windows-x64.zip" https://github.com/ollama/ollama/releases/download/v0.40.14/ollama-windows-amd64.zip
+      - name: Package Windows application
+        shell: pwsh
+        run: |
+          $env:OUT_DIR = "$env:RUNNER_TEMP/vacancy-brief-windows-x64"
+          $env:PROD_MODULES = "$env:RUNNER_TEMP/prod"
+          $env:WHISPER_DIR = "$env:RUNNER_TEMP/whisper/Release"
+          $env:FFMPEG_BINARY = "$env:RUNNER_TEMP/ffmpeg-package/node_modules/ffmpeg-static/ffmpeg.exe"
+          $env:NODE_BINARY = (Get-Command node).Source
+          $env:MODEL_META = "$env:RUNNER_TEMP/offline-models/offline-model.json"
+          node scripts/offline/package-app.mjs
+          python scripts/offline/zip-package.py "$env:OUT_DIR" "$env:RUNNER_TEMP/vacancy-brief-windows-x64.zip"
+      - name: Upload Windows app and Ollama runtime
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          gh release upload $env:TAG "$env:RUNNER_TEMP/vacancy-brief-windows-x64.zip" --repo $env:GITHUB_REPOSITORY --clobber
+          gh release upload $env:TAG "$env:RUNNER_TEMP/ollama-runtime-windows-x64.zip" --repo $env:GITHUB_REPOSITORY --clobber
+
+  publish:
+    needs: [macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish complete release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false

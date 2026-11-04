@@ -71,6 +71,8 @@ export function ResultScreen() {
                 <Tag type="purple" size="sm">
                   Демо: шаблон без AI
                 </Tag>
+              ) : doc.source === 'local_template' ? (
+                <Tag type="teal" size="sm">Собрано по подтверждённым фактам</Tag>
               ) : (
                 <Tag type="blue" size="sm">
                   Создано моделью

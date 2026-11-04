@@ -56,7 +56,7 @@ test('T06 / S05: «занимается разными делами» — уто
   await expectPercent(page, 0);
   await clar.getByRole('button', { name: 'Продолжить без уточнения' }).click();
   await expect(page.locator('#question-title')).toContainText('Над каким проектом');
-  await expect(page.locator('.vpr__answered').first()).toContainText('Проверено ответов: 1 из 4');
+  await expect(page.locator('.vpr__label').first()).toContainText('Прогресс 1 из 4');
   await expectPercent(page, 0);
 });
 

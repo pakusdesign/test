@@ -43,6 +43,11 @@ function repairMessages(repair: RepairRequest | undefined): MessageParam[] {
   ];
 }
 
+export interface StructuredClient {
+  readonly model: string;
+  structured(system: string, messages: { role: 'user' | 'assistant'; content: string }[], schema: unknown, signal: AbortSignal): Promise<ModelOutput>;
+}
+
 export class AnthropicClient {
   private readonly fetchImpl: typeof fetch;
 
@@ -97,7 +102,7 @@ export class AnthropicAnalyzer implements Analyzer {
   readonly promptVersion = EXTRACT_PROMPT_VERSION;
 
   constructor(
-    private readonly client: AnthropicClient,
+    private readonly client: StructuredClient,
     private readonly prompts: PromptSet,
   ) {}
 
@@ -132,7 +137,7 @@ export class AnthropicGenerator implements Generator {
   readonly promptVersion = GENERATE_PROMPT_VERSION;
 
   constructor(
-    private readonly client: AnthropicClient,
+    private readonly client: StructuredClient,
     private readonly prompts: PromptSet,
   ) {}
 

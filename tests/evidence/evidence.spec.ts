@@ -149,54 +149,46 @@ test('видео анимации круга и замеры кадров', asyn
   await page.waitForTimeout(500);
   await page.getByTestId('pg-interrupt').click();
   await page.waitForTimeout(900);
-  // Ореол: уровень из галереи (без микрофона), затем снижение.
-  await page.getByRole('button', { name: 'Запись (ореол)' }).click();
+  // Запись: лента и волны в выбранной четверти, уровень из галереи (без микрофона), затем остановка.
+  await page.getByTestId('pg-zone-q2').click();
+  await page.getByRole('button', { name: 'Запись (лента и волны)' }).click();
   for (const v of ['0.2', '0.6', '1', '0.4', '0']) {
     await page.locator('.gallery-range input').fill(v);
-    await page.waitForTimeout(250);
+    await page.waitForTimeout(400);
   }
-  await page.getByRole('button', { name: 'Остановить запись (ореол)' }).click();
+  await page.getByRole('button', { name: 'Остановить запись' }).click();
   await page.waitForTimeout(400);
   const video = page.video();
   await context.close();
   if (video) await video.saveAs(path.join(OUT, 'ring-animation.webm'));
 
-  // Ореол от фиктивного микрофона Chromium: интервалы между обновлениями уровня 10 с.
+  // Световой слой в приложении: покой и запись от фиктивного микрофона Chromium, по 10 с.
   const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 800 }, permissions: ['microphone'] });
   const p2 = await ctx2.newPage();
   await p2.goto('/');
   await p2.getByRole('button', { name: 'Начать' }).click();
+  await expect(p2.locator('.vpr').first()).toHaveAttribute('data-motion', 'running');
+  const rafFor = (ms: number) =>
+    p2.evaluate(async (duration) => {
+      const deltas: number[] = [];
+      let last = performance.now();
+      const t0 = last;
+      await new Promise<void>((resolve) => {
+        const tick = (now: number) => {
+          deltas.push(now - last);
+          last = now;
+          if (now - t0 < duration) requestAnimationFrame(tick);
+          else resolve();
+        };
+        requestAnimationFrame(tick);
+      });
+      return deltas;
+    }, ms);
+  const idle = await rafFor(10_000);
   await p2.getByRole('button', { name: 'Записать ответ' }).click();
   await expect(p2.getByTestId('recording-panel')).toBeVisible();
-  const halo = await p2.evaluate(async () => {
-    const el = document.querySelector('.vpr__halo') as SVGElement;
-    const deltas: number[] = [];
-    const scales = new Set<string>();
-    let lastChange = performance.now();
-    let prev = el.style.transform;
-    const t0 = performance.now();
-    await new Promise<void>((resolve) => {
-      const obs = new MutationObserver(() => {
-        const now = performance.now();
-        if (el.style.transform !== prev) {
-          deltas.push(now - lastChange);
-          lastChange = now;
-          prev = el.style.transform;
-          scales.add(prev);
-        }
-        if (now - t0 > 10_000) {
-          obs.disconnect();
-          resolve();
-        }
-      });
-      obs.observe(el, { attributes: true, attributeFilter: ['style'] });
-      setTimeout(() => {
-        obs.disconnect();
-        resolve();
-      }, 10_500);
-    });
-    return { deltas, distinctScales: scales.size };
-  });
+  await expect(p2.locator('.vpr').first()).toHaveAttribute('data-recording-zone', 'q1');
+  const recording = await rafFor(10_000);
   await p2.getByRole('button', { name: 'Завершить запись' }).click();
   await ctx2.close();
 
@@ -218,11 +210,8 @@ test('видео анимации круга и замеры кадров', asyn
     browser: `Chromium ${chromium.executablePath() ? browser.version() : 'unknown'} (headless, Playwright 1.63.0)`,
     environment: 'Облачный Linux-контейнер без GPU. Значения headless не равны частоте реального экрана 60 Hz.',
     fillSequence: { note: 'rAF-интервалы во время 0→12.5→25→50→100 в галерее, 3.4 с', ...stats(fill) },
-    haloUpdates: {
-      note: 'Интервалы между изменениями transform ореола при записи фиктивного микрофона Chromium, 10 с',
-      distinctScaleValues: halo.distinctScales,
-      ...stats(halo.deltas),
-    },
+    ringIdle: { note: 'rAF-интервалы на экране вопроса 1 в покое (световой слой canvas), 10 с, 1280×800', ...stats(idle) },
+    ringRecording: { note: 'rAF-интервалы во время записи q1 с фиктивным микрофоном Chromium, 10 с, 1280×800', ...stats(recording) },
   };
   await writeFile(path.join(OUT, 'motion-metrics.json'), JSON.stringify(report, null, 2) + '\n');
 });

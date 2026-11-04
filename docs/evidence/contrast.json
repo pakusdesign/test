@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-03T15:31:36.873Z",
+  "date": "2026-11-04T07:56:19.736Z",
   "results": [
     {
       "element": "Основной текст app-text-primary",
@@ -58,87 +58,423 @@
       "pass": true
     },
     {
-      "element": "Акцент / ссылки / заполненные штрихи app-accent",
+      "element": "Акцент / ссылки app-accent",
       "background": "стекло над холстом",
       "ratio": 4.92,
       "required": 4.5,
       "pass": true
     },
     {
-      "element": "Акцент / ссылки / заполненные штрихи app-accent",
+      "element": "Акцент / ссылки app-accent",
       "background": "стекло над центром голубого пятна",
       "ratio": 4.56,
       "required": 4.5,
       "pass": true
     },
     {
-      "element": "Акцент / ссылки / заполненные штрихи app-accent",
+      "element": "Акцент / ссылки app-accent",
       "background": "стекло над центром сиреневого пятна",
       "ratio": 4.62,
       "required": 4.5,
       "pass": true
     },
     {
-      "element": "Акцент / ссылки / заполненные штрихи app-accent",
+      "element": "Акцент / ссылки app-accent",
       "background": "непрозрачный fallback",
       "ratio": 5,
       "required": 4.5,
       "pass": true
     },
     {
-      "element": "Пустые штрихи круга (border-strong-01)",
+      "element": "Дуга полноты #6040F0",
       "background": "стекло над холстом",
-      "ratio": 3.27,
+      "ratio": 5.93,
       "required": 3,
       "pass": true
     },
     {
-      "element": "Пустые штрихи круга (border-strong-01)",
+      "element": "Дуга полноты #6040F0",
       "background": "стекло над центром голубого пятна",
-      "ratio": 3.02,
+      "ratio": 5.48,
       "required": 3,
       "pass": true
     },
     {
-      "element": "Пустые штрихи круга (border-strong-01)",
+      "element": "Дуга полноты #6040F0",
       "background": "стекло над центром сиреневого пятна",
-      "ratio": 3.06,
+      "ratio": 5.55,
       "required": 3,
       "pass": true
     },
     {
-      "element": "Пустые штрихи круга (border-strong-01)",
+      "element": "Дуга полноты #6040F0",
       "background": "непрозрачный fallback",
-      "ratio": 3.32,
+      "ratio": 6.02,
       "required": 3,
       "pass": true
     },
     {
-      "element": "Активный сектор (icon-secondary)",
+      "element": "Дуга полноты #5048F2",
       "background": "стекло над холстом",
-      "ratio": 7.69,
+      "ratio": 5.82,
       "required": 3,
       "pass": true
     },
     {
-      "element": "Активный сектор (icon-secondary)",
+      "element": "Дуга полноты #5048F2",
       "background": "стекло над центром голубого пятна",
-      "ratio": 7.12,
+      "ratio": 5.39,
       "required": 3,
       "pass": true
     },
     {
-      "element": "Активный сектор (icon-secondary)",
+      "element": "Дуга полноты #5048F2",
       "background": "стекло над центром сиреневого пятна",
-      "ratio": 7.21,
+      "ratio": 5.46,
       "required": 3,
       "pass": true
     },
     {
-      "element": "Активный сектор (icon-secondary)",
+      "element": "Дуга полноты #5048F2",
       "background": "непрозрачный fallback",
-      "ratio": 7.81,
+      "ratio": 5.92,
       "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #3156F6",
+      "background": "стекло над холстом",
+      "ratio": 5.45,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #3156F6",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 5.04,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #3156F6",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 5.11,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #3156F6",
+      "background": "непрозрачный fallback",
+      "ratio": 5.54,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #1A60FF",
+      "background": "стекло над холстом",
+      "ratio": 4.97,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #1A60FF",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 4.6,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #1A60FF",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 4.66,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #1A60FF",
+      "background": "непрозрачный fallback",
+      "ratio": 5.05,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #0E86D0",
+      "background": "стекло над холстом",
+      "ratio": 3.87,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #0E86D0",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 3.58,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #0E86D0",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 3.63,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #0E86D0",
+      "background": "непрозрачный fallback",
+      "ratio": 3.93,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #08919F",
+      "background": "стекло над холстом",
+      "ratio": 3.72,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #08919F",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 3.44,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #08919F",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 3.48,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #08919F",
+      "background": "непрозрачный fallback",
+      "ratio": 3.78,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #1C7FE0",
+      "background": "стекло над холстом",
+      "ratio": 4.01,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #1C7FE0",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 3.71,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #1C7FE0",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 3.75,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #1C7FE0",
+      "background": "непрозрачный fallback",
+      "ratio": 4.07,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #3D5FF0",
+      "background": "стекло над холстом",
+      "ratio": 5.05,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #3D5FF0",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 4.67,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #3D5FF0",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 4.73,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Дуга полноты #3D5FF0",
+      "background": "непрозрачный fallback",
+      "ratio": 5.13,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #6A4CF5",
+      "background": "стекло над холстом",
+      "ratio": 5.21,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #6A4CF5",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 4.82,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #6A4CF5",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 4.89,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #6A4CF5",
+      "background": "непрозрачный fallback",
+      "ratio": 5.3,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #2F67FF",
+      "background": "стекло над холстом",
+      "ratio": 4.59,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #2F67FF",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 4.25,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #2F67FF",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 4.3,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #2F67FF",
+      "background": "непрозрачный fallback",
+      "ratio": 4.66,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #0E9AA8",
+      "background": "стекло над холстом",
+      "ratio": 3.33,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #0E9AA8",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 3.08,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #0E9AA8",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 3.12,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #0E9AA8",
+      "background": "непрозрачный fallback",
+      "ratio": 3.38,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #2A86F2",
+      "background": "стекло над холстом",
+      "ratio": 3.57,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #2A86F2",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 3.3,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #2A86F2",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 3.35,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #2A86F2",
+      "background": "непрозрачный fallback",
+      "ratio": 3.63,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #E2441E",
+      "background": "стекло над холстом",
+      "ratio": 4.07,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #E2441E",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 3.77,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #E2441E",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 3.82,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Кромка обода #E2441E",
+      "background": "непрозрачный fallback",
+      "ratio": 4.13,
+      "required": 3,
+      "pass": true
+    },
+    {
+      "element": "Подпись уточнения (тёплый текст круга)",
+      "background": "стекло над холстом",
+      "ratio": 5.66,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Подпись уточнения (тёплый текст круга)",
+      "background": "стекло над центром голубого пятна",
+      "ratio": 5.23,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Подпись уточнения (тёплый текст круга)",
+      "background": "стекло над центром сиреневого пятна",
+      "ratio": 5.3,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "element": "Подпись уточнения (тёплый текст круга)",
+      "background": "непрозрачный fallback",
+      "ratio": 5.74,
+      "required": 4.5,
       "pass": true
     },
     {

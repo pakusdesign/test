@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { act, cleanup, render } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { VacancyProgressRing, type VacancyProgressRingProps } from '../../src/client/components/ring/VacancyProgressRing';
-import { GROUP_ARC_LENGTH } from '../../src/client/components/ring/geometry';
+import { UNIT_ARC_LENGTH } from '../../src/client/components/ring/geometry';
 import type { AudioMeter } from '../../src/client/audio/level';
 
 const none = [false, false, false, false, false, false, false, false];
@@ -16,33 +16,48 @@ const props = (patch: Partial<VacancyProgressRingProps> = {}): VacancyProgressRi
   ...patch,
 });
 
+beforeAll(() => {
+  // В jsdom нет canvas: световой слой отключается, чёткая маска и подписи работают.
+  HTMLCanvasElement.prototype.getContext = (() => null) as unknown as HTMLCanvasElement['getContext'];
+});
+
 afterEach(cleanup);
 
-function groups(container: HTMLElement) {
-  return [...container.querySelectorAll('.vpr__group')].map((g) => g.getAttribute('data-filled'));
+function units(container: HTMLElement) {
+  return [...container.querySelectorAll('.vpr__unit')].map((g) => g.getAttribute('data-filled'));
 }
 
 function offsets(container: HTMLElement) {
-  return [...container.querySelectorAll<SVGPathElement>('.vpr__mask-arc')].map((p) => Number(p.style.strokeDashoffset));
+  return [...container.querySelectorAll<SVGPathElement>('.vpr__unit-arc')].map((p) => Number(p.style.strokeDashoffset));
+}
+
+function zone(container: HTMLElement, q: string) {
+  return container.querySelector(`.vpr__zone[data-question="${q}"]`)!;
 }
 
 describe('VacancyProgressRing', () => {
-  it('64 нейтральных и 64 акцентных штриха; доступность progressbar', () => {
+  it('световой слой, четыре четверти и восемь чётких дуг; доступность progressbar', () => {
     const { container, getByRole } = render(<VacancyProgressRing {...props()} />);
-    expect(container.querySelectorAll('.vpr__tick')).toHaveLength(64);
-    expect(container.querySelectorAll('.vpr__fill')).toHaveLength(64);
+    expect(container.querySelectorAll('canvas.vpr__light')).toHaveLength(1);
+    expect(container.querySelector('canvas')!.getAttribute('aria-hidden')).toBe('true');
+    expect(container.querySelectorAll('.vpr__zone')).toHaveLength(4);
+    expect(container.querySelectorAll('.vpr__unit-arc')).toHaveLength(8);
+    // Прежней дорожки из штрихов нет.
+    expect(container.querySelectorAll('line')).toHaveLength(0);
     const bar = getByRole('progressbar');
     expect(bar.getAttribute('aria-valuenow')).toBe('0');
-    expect(bar.getAttribute('aria-label')).toBe('Полнота требований к вакансии');
+    expect(bar.getAttribute('aria-label')).toBe('Прогресс заполнения требований к вакансии');
     // Круг не в Tab-порядке.
     expect(bar.getAttribute('tabindex')).toBeNull();
   });
 
-  it('T34: разреженное заполнение — светятся только группы q2 и q4', () => {
+  it('T34: разреженное заполнение — светятся только единицы q2 и q4', () => {
     const v = [false, false, true, true, false, false, true, true];
     const { container, getByRole } = render(<VacancyProgressRing {...props({ validConfirmedUnits: v })} />);
-    expect(groups(container)).toEqual(v.map(String));
+    expect(units(container)).toEqual(v.map(String));
     expect(offsets(container).map((o) => o === 0)).toEqual(v);
+    expect(zone(container, 'q2').getAttribute('data-complete')).toBe('true');
+    expect(zone(container, 'q1').getAttribute('data-complete')).toBe('false');
     expect(getByRole('progressbar').getAttribute('aria-valuetext')).toBe('Подтверждено 4 из 8 частей; полнота 50 процента');
   });
 
@@ -52,14 +67,14 @@ describe('VacancyProgressRing', () => {
     expect(getByRole('progressbar').getAttribute('aria-valuenow')).toBe('12.5');
   });
 
-  it('направление перехода: рост — up (400 ms), снижение — down (240 ms); остальные группы не трогаются', () => {
+  it('направление перехода: рост — up (400 ms), снижение — down (240 ms); остальные единицы не трогаются', () => {
     const { container, rerender } = render(<VacancyProgressRing {...props()} />);
     rerender(<VacancyProgressRing {...props({ validConfirmedUnits: [true, true, ...none.slice(2)] })} />);
-    const dirs = () => [...container.querySelectorAll('.vpr__mask-arc')].map((p) => p.getAttribute('data-dir'));
+    const dirs = () => [...container.querySelectorAll('.vpr__unit-arc')].map((p) => p.getAttribute('data-dir'));
     expect(dirs().slice(0, 3)).toEqual(['up', 'up', 'none']);
     rerender(<VacancyProgressRing {...props({ validConfirmedUnits: [true, false, ...none.slice(2)] })} />);
     expect(dirs().slice(0, 2)).toEqual(['up', 'down']);
-    expect(offsets(container)[1]).toBeCloseTo(GROUP_ARC_LENGTH);
+    expect(offsets(container)[1]).toBeCloseTo(UNIT_ARC_LENGTH);
   });
 
   it('первичный показ: знак 100% без анимации; первое достижение — с задержкой; снижение убирает знак', () => {
@@ -82,16 +97,53 @@ describe('VacancyProgressRing', () => {
     expect(success().getAttribute('data-animate')).toBe('false');
   });
 
-  it('T35: запись, уровень голоса и ожидание не меняют процент', () => {
+  it('T35: запись, уровень голоса и ожидание не меняют процент; запись выделяет только свою четверть', () => {
     const v = [true, true, ...none.slice(2)];
     const { container, rerender } = render(<VacancyProgressRing {...props({ validConfirmedUnits: v })} />);
-    rerender(<VacancyProgressRing {...props({ validConfirmedUnits: v, stage: 'recording', audioLevel: 1 })} />);
+    rerender(<VacancyProgressRing {...props({ validConfirmedUnits: v, stage: 'recording', activeQuestionId: 'q2', audioLevel: 1 })} />);
     expect(container.querySelector('.vpr__value')!.textContent).toBe('25%');
-    expect(container.querySelector('.vpr__halo-wrap')!.getAttribute('data-active')).toBe('true');
-    rerender(<VacancyProgressRing {...props({ validConfirmedUnits: v, stage: 'processing', processing: { key: 'r1', label: 'Проверяем, хватает ли сведений' } })} />);
+    expect(container.querySelector('.vpr')!.getAttribute('data-recording-zone')).toBe('q2');
+    expect([...container.querySelectorAll('.vpr__zone')].map((z) => z.getAttribute('data-recording'))).toEqual(['false', 'true', 'false', 'false']);
+    rerender(<VacancyProgressRing {...props({ validConfirmedUnits: v, stage: 'processing', activeQuestionId: 'q2', processing: { key: 'r1', label: 'Проверяем, хватает ли сведений' } })} />);
     expect(container.querySelector('.vpr__value')!.textContent).toBe('25%');
-    expect(container.querySelector('.vpr__halo-wrap')!.getAttribute('data-active')).toBe('false');
+    expect(container.querySelector('.vpr')!.getAttribute('data-recording-zone')).toBe('');
     expect(offsets(container).slice(0, 2)).toEqual([0, 0]);
+  });
+
+  it('уточнение держится в своей четверти и видно одновременно с записью другого вопроса', () => {
+    const v = [true, true, true, false, false, false, false, false];
+    const { container, rerender, getByRole } = render(
+      <VacancyProgressRing {...props({ validConfirmedUnits: v, stage: 'clarification', activeQuestionId: 'q2', attentionQuestionIds: ['q2'], statusText: 'Вопрос 2 · нужно уточнение', statusDetail: 'За какой результат в этом проекте отвечает сотрудник?' })} />,
+    );
+    expect(container.querySelector('.vpr')!.getAttribute('data-attention')).toBe('q2');
+    expect(zone(container, 'q2').getAttribute('data-attention')).toBe('true');
+    expect(container.querySelector('.vpr__stage')!.textContent).toBe('Вопрос 2 · нужно уточнение');
+    expect(container.querySelector('.vpr__detail')!.textContent).toContain('За какой результат');
+    // На своём вопросе отдельная строка не дублирует статус.
+    expect(container.querySelector('.vpr__attention')).toBeNull();
+    expect(getByRole('progressbar').getAttribute('aria-valuetext')).toContain('нужно уточнение: вопрос 2');
+
+    rerender(<VacancyProgressRing {...props({ validConfirmedUnits: v, stage: 'recording', activeQuestionId: 'q3', attentionQuestionIds: ['q2'], statusText: 'Идёт запись · вопрос 3 из 4' })} />);
+    expect(zone(container, 'q2').getAttribute('data-attention')).toBe('true');
+    expect(zone(container, 'q3').getAttribute('data-recording')).toBe('true');
+    expect(container.querySelector('.vpr__attention')!.textContent).toBe('Нужно уточнение: вопрос 2');
+    expect(container.querySelector('.vpr__value')!.textContent).toBe('38%');
+
+    rerender(<VacancyProgressRing {...props({ validConfirmedUnits: v, stage: 'review', activeQuestionId: 'q2', attentionQuestionIds: [] })} />);
+    expect(container.querySelector('.vpr')!.getAttribute('data-attention')).toBe('');
+    expect(container.querySelector('.vpr__attention')).toBeNull();
+  });
+
+  it('объявления: процент и появление уточнения, без кадров анимации', () => {
+    const { container, rerender } = render(<VacancyProgressRing {...props()} />);
+    const live = () => container.querySelector('.cds--visually-hidden[aria-live]')!.textContent;
+    expect(live()).toBe('');
+    rerender(<VacancyProgressRing {...props({ validConfirmedUnits: [true, ...none.slice(1)] })} />);
+    expect(live()).toBe('Прогресс 13%');
+    rerender(<VacancyProgressRing {...props({ validConfirmedUnits: [true, ...none.slice(1)], attentionQuestionIds: ['q1'] })} />);
+    expect(live()).toBe('Нужно уточнение: вопрос 1');
+    rerender(<VacancyProgressRing {...props({ validConfirmedUnits: [true, ...none.slice(1)], attentionQuestionIds: ['q1'], stage: 'recording', audioLevel: 0.9 })} />);
+    expect(live()).toBe('Нужно уточнение: вопрос 1');
   });
 
   it('InlineLoading появляется только после 150 мс; до этого — текст этапа', () => {
@@ -106,14 +158,15 @@ describe('VacancyProgressRing', () => {
     vi.useRealTimers();
   });
 
-  it('reduced motion: статичная отметка ожидания вместо InlineLoading', () => {
+  it('reduced motion: статичный свет и статичная отметка ожидания вместо InlineLoading', () => {
     const { container } = render(<VacancyProgressRing {...props({ reducedMotion: true, stage: 'processing', processing: { key: 'r3', label: 'Проверяем' } })} />);
     expect(container.querySelector('.vpr')!.getAttribute('data-reduced-motion')).toBe('true');
+    expect(container.querySelector('.vpr')!.getAttribute('data-motion')).toBe('static');
     expect(container.querySelector('.vpr__static-wait')).not.toBeNull();
     expect(container.querySelector('.cds--inline-loading')).toBeNull();
   });
 
-  it('ореол подписывается на реальный сигнал и отписывается после записи', () => {
+  it('уровень голоса: подписка на реальный сигнал только во время записи и отписка после', () => {
     const listeners = new Set<(l: number) => void>();
     const meter: AudioMeter = {
       subscribe: (l) => {
@@ -122,13 +175,16 @@ describe('VacancyProgressRing', () => {
       },
       stop: () => undefined,
     };
-    const { container, rerender } = render(<VacancyProgressRing {...props({ stage: 'recording', audioMeter: meter })} />);
+    const { rerender, unmount } = render(<VacancyProgressRing {...props({ stage: 'recording', audioMeter: meter })} />);
     expect(listeners.size).toBe(1);
     act(() => [...listeners].forEach((l) => l(1)));
-    const halo = container.querySelector<SVGCircleElement>('.vpr__halo')!;
-    expect(halo.style.transform).toBe('scale(1.03)');
     rerender(<VacancyProgressRing {...props({ stage: 'processing', audioMeter: meter })} />);
     expect(listeners.size).toBe(0);
-    expect(halo.style.transform).toBe('');
+    rerender(<VacancyProgressRing {...props({ stage: 'recording', audioMeter: meter, reducedMotion: true })} />);
+    expect(listeners.size).toBe(0);
+    rerender(<VacancyProgressRing {...props({ stage: 'recording', audioMeter: meter })} />);
+    expect(listeners.size).toBe(1);
+    unmount();
+    expect(listeners.size).toBe(0);
   });
 });

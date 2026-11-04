@@ -147,7 +147,7 @@ function httpError(
         ...common,
         stateId: 'S19',
         title: 'Сервис не ответил вовремя',
-        message: 'Сервис обработки не ответил за 45 секунд.',
+        message: 'Сервис обработки не ответил вовремя.',
         saved: SAVED[op],
         retryable: true,
         actions: op === 'generate' ? ['retry'] : ['retry', 'text'],

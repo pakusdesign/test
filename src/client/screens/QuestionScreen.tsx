@@ -29,7 +29,6 @@ import type { Fact } from '../../shared/schemas';
 import { recordingSupport } from '../audio/recorder';
 import {
   ActionErrorNotice,
-  EmptyState,
   GlassPanel,
   RecordingTimer,
   SectionBoundary,
@@ -66,11 +65,10 @@ export function QuestionScreen() {
         <SessionRing />
       </div>
       <div className="question-panel__head" key={q}>
-        <p className="question-panel__intro">{INTRO_TEXT}</p>
-        <p className="question-panel__counter">Вопрос {def.index + 1} из 4</p>
-        <h1 id="question-title" className="question-panel__title" ref={headingRef} tabIndex={-1}>
+        <h1 className="question-panel__intro">{INTRO_TEXT}</h1>
+        <h2 id="question-title" className="question-panel__title" ref={headingRef} tabIndex={-1}>
           {def.text}
-        </h1>
+        </h2>
         <p className="question-panel__hint">{def.hint}</p>
       </div>
       <SectionBoundary name="Вопрос">
@@ -99,14 +97,8 @@ function QuestionBody({ q }: { q: QuestionId }) {
 function FirstAnswer({ q }: { q: QuestionId }) {
   const s = useSession();
   const crossFacts = factsInView(s.analysis, s.answers, q);
-  const showEmpty = s.stage === 'ready' && !s.pendingAudio;
   return (
     <div className="first-answer">
-      {showEmpty ? (
-        <EmptyState stateId="S02" title="Ответ пока не добавлен" icon={<CircleDash size={24} />}>
-          <p>Нажмите «Записать ответ» и расскажите своими словами. Можно ответить текстом.</p>
-        </EmptyState>
-      ) : null}
       {crossFacts.length > 0 ? <FactsCard q={q} title="Уже известно из других ответов" /> : null}
       <InputZone q={q} />
     </div>
@@ -712,7 +704,7 @@ function QuestionNav({ q }: { q: QuestionId }) {
           {last ? 'К обзору' : 'Далее'}
         </Button>
       ) : (
-        <Button kind="secondary" size="md" disabled={busy} onClick={() => actions.skipQuestion()}>
+        <Button kind="ghost" size="md" disabled={busy} onClick={() => actions.skipQuestion()}>
           {last ? 'Пропустить и к обзору' : 'Пропустить вопрос'}
         </Button>
       )}

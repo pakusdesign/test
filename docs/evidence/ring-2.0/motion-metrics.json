@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-04T08:12:25.978Z",
+  "browser": "Chromium 153.0.8010.12 headless (Playwright 1.63.0)",
+  "device": "Облачный Linux-контейнер, без GPU (программная отрисовка)",
+  "window": "1440×900, deviceScaleFactor 2, круг 220 px",
+  "idle": {
+    "result": {
+      "frames": 281,
+      "fps": 28,
+      "meanMs": 35.7,
+      "p50Ms": 33.3,
+      "p95Ms": 50,
+      "maxMs": 83.4,
+      "over20ms": 266
+    },
+    "mainThreadBusy": "21.3%",
+    "scriptBusy": "8.4%"
+  },
+  "recording": {
+    "result": {
+      "frames": 295,
+      "fps": 29.5,
+      "meanMs": 33.9,
+      "p50Ms": 33.3,
+      "p95Ms": 50,
+      "maxMs": 116.7,
+      "over20ms": 264
+    },
+    "mainThreadBusy": "26.4%",
+    "scriptBusy": "8.7%"
+  },
+  "note": "Замер в облачном контейнере без GPU (программная отрисовка). На Mac и в Safari не измерялось.",
+  "ringDrawCost": {
+    "note": "Стоимость одного кадра светового слоя с принудительной растеризацией каждого кадра (getImageData), программная отрисовка, 300 кадров",
+    "dpr1_canvas300": {
+      "idle_ms": 3.37,
+      "recordingWithWarning_ms": 2.95
+    },
+    "dpr2_canvas600": {
+      "idle_ms": 4.77,
+      "recordingWithWarning_ms": 4.8
+    },
+    "beforeOptimization_dpr2_ms": 19.6
+  },
+  "pageFps": {
+    "note": "rAF страницы вопроса 1, 1440×900, 5 с, с принудительной перерисовкой каждого кадра",
+    "dpr1_ring_animated": "28.5 fps",
+    "dpr1_ring_static_reduced_motion": "59.6 fps",
+    "dpr1_ring_animated_without_backdrop_filter": "60 fps",
+    "diagnosis": "Без GPU кадр ограничивает перекомпоновка backdrop-filter стеклянной панели под движущимся холстом; сам круг укладывается в 60 fps. При аппаратной композиции (обычный Chrome/Safari на Mac) это не ожидается, но не проверено."
+  }
+}

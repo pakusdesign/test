@@ -259,14 +259,8 @@ body {
 }
 
 .question-panel__intro {
-  @include type.type-style('body-01');
-  color: var(--app-text-secondary);
-  margin-bottom: 4px;
-}
-
-.question-panel__counter {
-  @include type.type-style('label-02');
-  color: theme.$text-secondary;
+  @include type.type-style('heading-03');
+  color: var(--app-text-primary);
   margin-bottom: 8px;
 }
 
@@ -501,10 +495,6 @@ body {
 }
 
 .facts-card {
-  padding: 16px;
-  background: theme.$layer-01;
-  border: 1px solid theme.$border-subtle-01;
-  border-radius: 8px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -735,16 +725,16 @@ body {
 
 .question-nav__steps {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .question-nav__step {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: 1px solid theme.$border-strong-01;
-  background: theme.$layer-01;
-  color: theme.$text-primary;
+  border: 1px solid theme.$border-subtle-01;
+  background: transparent;
+  color: theme.$text-secondary;
   @include type.type-style('body-compact-01');
   cursor: pointer;
 
@@ -755,9 +745,9 @@ body {
     border-style: dashed;
   }
   &[data-current='true'] {
-    background: theme.$background-inverse;
-    color: theme.$text-inverse;
-    border-color: theme.$background-inverse;
+    background: rgba(15, 98, 254, 0.08);
+    color: theme.$link-primary;
+    border-color: theme.$link-primary;
   }
   &:focus-visible {
     outline: 2px solid theme.$focus;

@@ -62,3 +62,49 @@ export const FULL = {
 export async function analyzeResponseFor(page: Page) {
   return page.waitForResponse((r) => r.url().endsWith('/api/analyze'));
 }
+
+/**
+ * Замер светового слоя круга (canvas). Для каждой четверти q1–q4 — максимальная толщина
+ * насыщенного света по радиусу (в единицах viewBox 220) и средний цвет обода.
+ * Белая подложка центра и слабое рассеянное свечение не учитываются.
+ */
+export async function ringLight(page: Page, root = page.locator('.vpr').first()) {
+  return root.locator('canvas.vpr__light').evaluate((canvas: HTMLCanvasElement) => {
+    const ctx = canvas.getContext('2d')!;
+    const unit = canvas.width / 300; // viewBox 220 + запас света 2×40
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const px = (x: number, y: number) => {
+      const i = (Math.round(y * unit) * canvas.width + Math.round(x * unit)) * 4;
+      return [data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!] as const;
+    };
+    const zones = [45, 135, 225, 315].map((mid) => {
+      let thickness = 0;
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let n = 0;
+      for (let off = -36; off <= 36; off += 3) {
+        const a = ((mid + off - 90) * Math.PI) / 180;
+        let count = 0;
+        for (let rad = 76; rad <= 120; rad += 0.25) {
+          const [R, G, B, A] = px(150 + rad * Math.cos(a), 150 + rad * Math.sin(a));
+          if (A > 200 && Math.max(R, G, B) - Math.min(R, G, B) > 60) {
+            count += 1;
+            r += R;
+            g += G;
+            b += B;
+            n += 1;
+          }
+        }
+        thickness = Math.max(thickness, count * 0.25);
+      }
+      return { thickness, rgb: n ? [Math.round(r / n), Math.round(g / n), Math.round(b / n)] : [0, 0, 0] };
+    });
+    let hash = 0;
+    for (let i = 0; i < data.length; i += 97) hash = (hash * 31 + data[i]!) | 0;
+    return { zones, hash };
+  });
+}
+
+/** Тёплый (красно-оранжевый) обод: красный канал заметно выше синего. */
+export const isWarm = (rgb: number[]) => rgb[0]! > rgb[2]! + 40;

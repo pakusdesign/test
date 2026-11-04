@@ -1,10 +1,14 @@
-// VacancyProgressRing (docs/12-progress-animation.md).
-// Анимируются только stroke-dashoffset масок групп, ореол и знак 100%.
-// Геометрия штрихов неизменна; transition: all не используется.
+// VacancyProgressRing — световое кольцо (docs/12-progress-animation.md, редакция 2.0).
+// Слои снизу вверх: canvas со светом (поля, обод, лента записи) → SVG с чёткими
+// дугами полноты → текст центра. В CSS анимируется только stroke-dashoffset дуг
+// и знак 100%; свет рисует canvas. transition: all не используется.
 @use '@carbon/react/scss/type';
 @use '@carbon/react/scss/theme' as theme;
 
 .vpr {
+  --vpr-warm-text: #b83a17;
+  --vpr-warm: #e2441e;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -18,68 +22,60 @@
   flex: none;
 }
 
+// Свет может выходить за край: холст больше круга на 40/220 с каждой стороны.
+.vpr__light {
+  position: absolute;
+  top: -18.1818%;
+  left: -18.1818%;
+  width: 136.3636%;
+  height: 136.3636%;
+  pointer-events: none;
+}
+
+// Светлая подложка центра поверх света: читаемость текста на стеклянной панели.
+// Радиус 88/220 — внутренний край ленты записи остаётся виден.
+.vpr__backdrop {
+  position: absolute;
+  inset: 10%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 255 255 / 94%) 0%, rgb(255 255 255 / 88%) 78%, rgb(255 255 255 / 0%) 100%);
+  pointer-events: none;
+}
+
 .vpr__svg {
+  position: relative;
   display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
 }
 
-// Нейтральная дорожка: семантический токен Carbon border-strong.
-.vpr__tick {
-  stroke: theme.$border-strong-01;
+// Смысловые четверти видны только в forced colors.
+.vpr__zone {
+  stroke: none;
 }
 
-.vpr__tick--active-sector {
-  stroke: theme.$icon-secondary;
-}
-
-.vpr__fill {
-  stroke: var(--app-accent);
-}
-
-// Проявление группы по часовой стрелке: 400 ms, кривая из спецификации.
-.vpr__mask-arc {
+// Чёткая дуга: проявление единицы по часовой стрелке за 400 ms.
+.vpr__unit-dash {
   transition-property: stroke-dashoffset;
   transition-duration: var(--motion-fill-duration);
   transition-timing-function: var(--motion-fill-easing);
 }
 
-// Погашение: 240 ms, обратный порядок (дуга отступает к началу группы).
-.vpr__mask-arc[data-dir='down'] {
+// Снижение полноты: 240 ms, дуга отступает к началу единицы.
+.vpr__unit-dash[data-dir='down'] {
   transition-duration: var(--motion-drain-duration);
 }
 
+// Мягкое свечение подтверждённой дуги — ровное, без движения.
+.vpr__unit-glow {
+  opacity: 0.16;
+}
+
 // Скрытая вкладка: изменения применяются сразу, накопленные кадры не проигрываются.
-.vpr[data-paused='true'] .vpr__mask-arc,
-.vpr[data-reduced-motion='true'] .vpr__mask-arc {
+.vpr[data-paused='true'] .vpr__unit-dash,
+.vpr[data-reduced-motion='true'] .vpr__unit-dash {
   transition: none;
-}
-
-.vpr__halo {
-  stroke: var(--app-accent);
-  opacity: 0.2;
-  transform-box: view-box;
-  transform-origin: 110px 110px;
-  will-change: transform, opacity;
-}
-
-.vpr__halo-wrap {
-  opacity: 0;
-  transition: opacity var(--motion-halo-fade) linear;
-}
-
-.vpr__halo-wrap[data-active='true'] {
-  opacity: 1;
-}
-
-.vpr[data-reduced-motion='true'] .vpr__halo-wrap {
-  transition: none;
-}
-
-.vpr[data-reduced-motion='true'] .vpr__halo {
-  transform: none !important;
-  opacity: 0.5;
 }
 
 .vpr__center {
@@ -89,6 +85,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   pointer-events: none;
 }
 
@@ -104,9 +101,10 @@
 }
 
 .vpr__success {
+  position: absolute;
+  top: calc(50% - 49px);
   display: inline-flex;
   height: 20px;
-  margin-bottom: 2px;
   color: theme.$support-success;
   opacity: 0;
   transition: none;
@@ -134,9 +132,8 @@
   text-align: center;
 }
 
-.vpr__answered {
-  @include type.type-style('body-01');
-  color: theme.$text-secondary;
+.vpr[data-stage='start'] .vpr__caption {
+  display: none;
 }
 
 .vpr__stage {
@@ -153,6 +150,10 @@
   }
 }
 
+.vpr__stage-text[data-tone='warm'] {
+  color: var(--vpr-warm-text);
+}
+
 .vpr__stage-text,
 .vpr__static-wait {
   animation: vpr-label-in var(--motion-stage-label) linear;
@@ -166,6 +167,28 @@
   svg {
     fill: theme.$icon-secondary;
   }
+}
+
+.vpr__detail {
+  @include type.type-style('body-01');
+  color: theme.$text-secondary;
+  max-width: 300px;
+}
+
+.vpr__attention {
+  @include type.type-style('label-01');
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--vpr-warm-text);
+}
+
+.vpr__attention-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--vpr-warm);
+  flex: none;
 }
 
 .vpr[data-reduced-motion='true'] .vpr__stage-text,
@@ -197,8 +220,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .vpr__mask-arc,
-  .vpr__halo-wrap,
+  .vpr__unit-dash,
   .vpr__success,
   .vpr__stage-text,
   .vpr__static-wait {
@@ -207,19 +229,35 @@
   }
 }
 
-// Forced colors: заполненные группы — Highlight, незаполненные — контур CanvasText.
+// Forced colors: свет скрыт, контур — CanvasText, подтверждённое — Highlight, уточнение — Mark.
 @media (forced-colors: active) {
-  .vpr__tick,
-  .vpr__tick--active-sector {
+  .vpr__light,
+  .vpr__backdrop {
+    display: none;
+  }
+  .vpr__zone {
     stroke: GrayText;
   }
-  .vpr__fill {
+  .vpr__zone[data-recording='true'] {
+    stroke: CanvasText;
+    stroke-width: 6;
+  }
+  .vpr__zone[data-attention='true'] {
+    stroke: Mark;
+    stroke-width: 6;
+  }
+  .vpr__unit-arc,
+  .vpr__unit-glow {
     stroke: Highlight;
   }
-  .vpr__halo {
-    stroke: Highlight;
+  .vpr__unit-glow {
+    opacity: 0;
   }
   .vpr__success {
     color: Highlight;
+  }
+  .vpr__attention-dot {
+    background: Mark;
+    forced-color-adjust: none;
   }
 }
