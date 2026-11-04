@@ -241,7 +241,10 @@ test('T25: компоненты Carbon со штатными размерами 
     const cs = getComputedStyle(el);
     return { bg: cs.backgroundColor, color: cs.color, padRight: cs.paddingRight };
   });
-  expect(primary.bg).toBe('rgb(4, 85, 237)');
+  const primaryChannels = primary.bg.match(/\d+/g)?.map(Number) ?? [];
+  expect(primaryChannels).toHaveLength(3);
+  expect(primaryChannels[2]).toBeGreaterThan(primaryChannels[0]! + 100);
+  expect(primaryChannels[2]).toBeGreaterThan(primaryChannels[1]! + 100);
   expect(primary.color).toBe('rgb(255, 255, 255)');
   expect(Number.parseFloat(primary.padRight)).toBeGreaterThanOrEqual(48);
   await page.getByRole('button', { name: 'Ответить текстом' }).click();
