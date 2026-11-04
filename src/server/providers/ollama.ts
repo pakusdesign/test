@@ -30,14 +30,6 @@ export class OllamaClient implements StructuredClient {
     if (!rawText) throw new ProviderOutputError('ollama', 'нет текстового блока');
     try {
       const raw: unknown = JSON.parse(rawText);
-      if (raw && typeof raw === 'object' && 'facts' in raw && Array.isArray(raw.facts)) {
-        const supported = raw.facts.every((fact: { text?: unknown; evidence?: { quote?: unknown }[] }) =>
-          typeof fact.text === 'string' && fact.evidence?.some((source) =>
-            typeof source.quote === 'string' && source.quote.toLocaleLowerCase('ru').includes((fact.text as string).toLocaleLowerCase('ru')),
-          ),
-        );
-        if (!supported) return { raw: undefined, rawText };
-      }
       return { raw, rawText };
     }
     catch { return { raw: undefined, rawText }; }
